@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -73,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),
@@ -101,10 +102,23 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-        <Toaster richColors position="top-right" />
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <LocalizedShell>
+            <Outlet />
+          </LocalizedShell>
+        </AuthProvider>
+      </I18nProvider>
     </QueryClientProvider>
+  );
+}
+
+function LocalizedShell({ children }: { children: ReactNode }) {
+  const { dir, lang } = useI18n();
+  return (
+    <div dir={dir} className={lang === "ar" ? "font-arabic" : ""}>
+      {children}
+      <Toaster richColors position={dir === "rtl" ? "top-left" : "top-right"} />
+    </div>
   );
 }
