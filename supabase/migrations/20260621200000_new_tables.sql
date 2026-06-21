@@ -15,11 +15,11 @@ $$;
 CREATE TABLE IF NOT EXISTS public.routers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
+  -- Note: credentials stored separately in router_secrets (admin-only)
   ip_address TEXT,
   model TEXT,
   api_port INTEGER DEFAULT 8728,
   username TEXT DEFAULT 'admin',
-  password TEXT,
   location TEXT,
   is_online BOOLEAN DEFAULT false,
   client_count INTEGER DEFAULT 0,
@@ -30,8 +30,24 @@ ALTER TABLE public.routers ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON public.routers TO authenticated;
 GRANT INSERT, UPDATE, DELETE ON public.routers TO authenticated;
 GRANT ALL ON public.routers TO service_role;
--- Admins: full access; everyone else: read-only
+-- Admins: full access; everyone else: read-only (no password column in this table)
 CREATE POLICY "routers_read" ON public.routers FOR SELECT TO authenticated USING (true);
+
+-- ============================================================
+-- Router Secrets — admin-only credential store (password never in routers table)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.router_secrets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  router_id UUID NOT NULL UNIQUE REFERENCES public.routers(id) ON DELETE CASCADE,
+  password TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.router_secrets ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.router_secrets TO authenticated;
+GRANT ALL ON public.router_secrets TO service_role;
+CREATE POLICY "router_secrets_admin" ON public.router_secrets FOR ALL TO authenticated
+  USING (public.current_user_has_role('admin'))
+  WITH CHECK (public.current_user_has_role('admin'));
 CREATE POLICY "routers_write" ON public.routers FOR INSERT TO authenticated
   WITH CHECK (public.current_user_has_role('admin'));
 CREATE POLICY "routers_update" ON public.routers FOR UPDATE TO authenticated

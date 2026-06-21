@@ -284,11 +284,12 @@ function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-1.5">
             {[
-              { to: "/customers", label: t("dashboard.addCustomer"), icon: Users, color: "text-blue-400 bg-blue-500/10" },
-              { to: "/recharge", label: t("dashboard.newRecharge"), icon: Zap, color: "text-violet-400 bg-violet-500/10" },
-              { to: "/reports", label: t("dashboard.viewReports"), icon: TrendingUp, color: "text-emerald-400 bg-emerald-500/10" },
-              { to: "/invoices", label: t("nav.invoices"), icon: FileText, color: "text-fuchsia-400 bg-fuchsia-500/10" },
-              { to: "/complaints", label: t("nav.complaints"), icon: MessageSquareWarning, color: "text-orange-400 bg-orange-500/10" },
+              { to: "/customers", label: t("dashboard.newSubscriber"), icon: Users, color: "text-blue-400 bg-blue-500/10" },
+              { to: "/packages", label: t("dashboard.newPackage"), icon: Package, color: "text-violet-400 bg-violet-500/10" },
+              { to: "/invoices", label: t("dashboard.newInvoice"), icon: FileText, color: "text-fuchsia-400 bg-fuchsia-500/10" },
+              { to: "/hotspot-cards", label: t("dashboard.createCard"), icon: Zap, color: "text-cyan-400 bg-cyan-500/10" },
+              { to: "/routers", label: t("dashboard.addRouter"), icon: Radio, color: "text-emerald-400 bg-emerald-500/10" },
+              { to: "/complaints", label: t("dashboard.newComplaint"), icon: MessageSquareWarning, color: "text-orange-400 bg-orange-500/10" },
             ].map((action) => (
               <Link key={action.to} to={action.to} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent/10 transition-colors group">
                 <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", action.color)}>

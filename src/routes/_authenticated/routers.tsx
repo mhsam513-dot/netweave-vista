@@ -172,13 +172,26 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
     setBusy(true);
     const { password, ...rest } = form;
     const base = { ...rest, api_port: Number(form.api_port) || 8728 };
-    // Only include password in payload if user entered a new value
-    const payload = password ? { ...base, password } : base;
-    const res = editing
-      ? await supabase.from("routers").update(payload).eq("id", editing.id)
-      : await supabase.from("routers").insert({ ...base, password: password || null });
+
+    let routerId = editing?.id;
+    if (editing) {
+      const res = await supabase.from("routers").update(base).eq("id", editing.id);
+      if (res.error) { setBusy(false); return toast.error(res.error.message); }
+    } else {
+      const res = await supabase.from("routers").insert(base).select("id").single();
+      if (res.error) { setBusy(false); return toast.error(res.error.message); }
+      routerId = res.data?.id;
+    }
+
+    if (password && routerId) {
+      const { error: secErr } = await supabase.from("router_secrets").upsert(
+        { router_id: routerId, password, updated_at: new Date().toISOString() },
+        { onConflict: "router_id" }
+      );
+      if (secErr) { setBusy(false); return toast.error(secErr.message); }
+    }
+
     setBusy(false);
-    if (res.error) return toast.error(res.error.message);
     toast.success(editing ? t("routers.updated") : t("routers.created"));
     onDone();
   };

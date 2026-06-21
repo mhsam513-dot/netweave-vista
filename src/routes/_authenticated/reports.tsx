@@ -38,7 +38,7 @@ function ReportsPage() {
           .order("created_at", { ascending: false })
           .limit(50),
         supabase.from("customers").select("status"),
-        supabase.from("customers").select("package:packages(name), status").not("package_id", "is", null),
+        supabase.from("recharges").select("package:packages(name)").not("package_id", "is", null),
         supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "unpaid"),
       ]);
 
