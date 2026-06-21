@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.routers (
   ip_address TEXT,
   model TEXT,
   api_port INTEGER DEFAULT 8728,
+  type TEXT NOT NULL DEFAULT 'mikrotik' CHECK (type IN ('mikrotik', 'ubiquiti', 'cisco', 'other')),
   username TEXT DEFAULT 'admin',
   location TEXT,
   is_online BOOLEAN DEFAULT false,

@@ -42,6 +42,7 @@ function RouterDetailPage() {
     name: "",
     ip_address: "",
     model: "",
+    type: "mikrotik",
     api_port: "8728",
     username: "admin",
     password: "",
@@ -54,6 +55,7 @@ function RouterDetailPage() {
         name: router.name ?? "",
         ip_address: router.ip_address ?? "",
         model: router.model ?? "",
+        type: (router as any).type ?? "mikrotik",
         api_port: String(router.api_port ?? 8728),
         username: router.username ?? "admin",
         password: "", // write-only: leave blank to keep existing, enter new value to update
@@ -65,18 +67,24 @@ function RouterDetailPage() {
 
   const saveRouter = useMutation({
     mutationFn: async () => {
+      const { password, ...rest } = form;
       const { error } = await supabase.from("routers").update({
-        name: form.name,
-        ip_address: form.ip_address || null,
-        model: form.model || null,
-        api_port: parseInt(form.api_port) || 8728,
-        username: form.username || null,
-        // Only update password if a new value was entered (write-only field)
-        ...(form.password ? { password: form.password } : {}),
-        location: form.location || null,
+        ...rest,
+        ip_address: rest.ip_address || null,
+        model: rest.model || null,
+        api_port: parseInt(rest.api_port) || 8728,
+        username: rest.username || null,
+        location: rest.location || null,
         updated_at: new Date().toISOString(),
       }).eq("id", id);
       if (error) throw error;
+      if (password) {
+        const { error: secErr } = await supabase.from("router_secrets").upsert(
+          { router_id: id, password, updated_at: new Date().toISOString() },
+          { onConflict: "router_id" }
+        );
+        if (secErr) throw secErr;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["router", id] });
@@ -201,6 +209,15 @@ function RouterDetailPage() {
               <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="RB750Gr3" />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs">Router Type</Label>
+              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                <option value="mikrotik">MikroTik</option>
+                <option value="ubiquiti">Ubiquiti</option>
+                <option value="cisco">Cisco</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">{t("routers.f.apiPort")}</Label>
               <Input type="number" value={form.api_port} onChange={(e) => setForm({ ...form, api_port: e.target.value })} />
             </div>
@@ -238,6 +255,7 @@ function RouterDetailPage() {
                 { label: t("routers.f.name"), value: router.name },
                 { label: t("routers.f.ip"), value: router.ip_address ?? "—" },
                 { label: t("routers.f.model"), value: router.model ?? "—" },
+                { label: "Router Type", value: ((router as any).type ?? "mikrotik").charAt(0).toUpperCase() + ((router as any).type ?? "mikrotik").slice(1) },
                 { label: t("routers.f.apiPort"), value: String(router.api_port ?? 8728) },
                 { label: t("routers.f.location"), value: router.location ?? "—" },
                 { label: t("routers.f.username"), value: router.username ?? "admin" },

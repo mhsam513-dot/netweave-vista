@@ -40,7 +40,7 @@ function Dashboard() {
       const [
         customers, online, todayRev, monthRev, expired, suspended, pending,
         pppoe, hotspot, packages, towers, complaints, recent, chart, chartByPkg,
-        outstandingInvoices, newSubsRaw,
+        outstandingInvoices, newSubsRaw, connectedRouters, soldSubs,
       ] = await Promise.all([
         supabase.from("customers").select("id", { count: "exact", head: true }),
         supabase.from("customers").select("id", { count: "exact", head: true }).eq("is_online", true),
@@ -59,6 +59,8 @@ function Dashboard() {
         supabase.from("recharges").select("amount, package:packages(name)").gte("created_at", monthStart),
         supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "unpaid"),
         supabase.from("customers").select("created_at").gte("created_at", subMonths(new Date(), 6).toISOString()),
+        supabase.from("routers").select("id", { count: "exact", head: true }).eq("is_online", true),
+        supabase.from("customers").select("id", { count: "exact", head: true }).eq("status", "active").not("package_id", "is", null),
       ]);
 
       const today = (todayRev.data ?? []).reduce((s, r) => s + Number(r.amount), 0);
@@ -110,6 +112,8 @@ function Dashboard() {
         packages: packages.count ?? 0, towers: towers.count ?? 0,
         complaints: complaints.count ?? 0,
         outstanding: outstandingInvoices.count ?? 0,
+        connectedRouters: connectedRouters.count ?? 0,
+        soldSubs: soldSubs.count ?? 0,
         recent: recent.data ?? [], chartData, packageChartData, statusPie, subscriberGrowth,
       };
     },
@@ -125,8 +129,8 @@ function Dashboard() {
     { label: t("dashboard.expiredCustomers"), value: data?.expired ?? 0, icon: AlertTriangle, accent: "from-orange-500/20", iconColor: "text-orange-400" },
     { label: t("dashboard.suspendedCustomers"), value: data?.suspended ?? 0, icon: UserX, accent: "from-red-500/20", iconColor: "text-red-400" },
     { label: t("dashboard.pendingCustomers"), value: data?.pending ?? 0, icon: Clock, accent: "from-slate-500/20", iconColor: "text-slate-400" },
-    { label: t("dashboard.pppoeCustomers"), value: data?.pppoe ?? 0, icon: Zap, accent: "from-yellow-500/20", iconColor: "text-yellow-400" },
-    { label: t("dashboard.hotspotCustomers"), value: data?.hotspot ?? 0, icon: Wifi, accent: "from-cyan-500/20", iconColor: "text-cyan-400" },
+    { label: t("dashboard.connectedRouters"), value: data?.connectedRouters ?? 0, icon: Radio, accent: "from-yellow-500/20", iconColor: "text-yellow-400" },
+    { label: t("dashboard.soldSubscriptions"), value: data?.soldSubs ?? 0, icon: Package, accent: "from-cyan-500/20", iconColor: "text-cyan-400" },
     { label: t("dashboard.openComplaints"), value: data?.complaints ?? 0, icon: MessageSquareWarning, accent: "from-amber-500/20", iconColor: "text-amber-400" },
   ];
 

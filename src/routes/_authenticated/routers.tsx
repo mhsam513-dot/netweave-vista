@@ -160,6 +160,7 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
     name: editing?.name ?? "",
     ip_address: editing?.ip_address ?? "",
     model: editing?.model ?? "",
+    type: editing?.type ?? "mikrotik",
     api_port: editing?.api_port ?? "8728",
     username: editing?.username ?? "admin",
     password: "", // write-only — never prefill from DB; leave blank to keep existing value
@@ -171,7 +172,7 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
     e.preventDefault();
     setBusy(true);
     const { password, ...rest } = form;
-    const base = { ...rest, api_port: Number(form.api_port) || 8728 };
+    const base = { ...rest, api_port: Number(form.api_port) || 8728, type: form.type || "mikrotik" };
 
     let routerId = editing?.id;
     if (editing) {
@@ -223,6 +224,15 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
         <div className="space-y-1.5">
           <Label className="text-xs">{t("routers.f.model")}</Label>
           <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="RB750Gr3" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Router Type</Label>
+          <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+            <option value="mikrotik">MikroTik</option>
+            <option value="ubiquiti">Ubiquiti</option>
+            <option value="cisco">Cisco</option>
+            <option value="other">Other</option>
+          </select>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">{t("routers.f.location")}</Label>

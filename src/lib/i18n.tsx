@@ -146,6 +146,8 @@ const en: Dict = {
   "dashboard.managePackages": "Manage Packages",
   "dashboard.networkHealth": "Network Health",
   "dashboard.revenueByPackage": "Revenue by Package",
+  "dashboard.connectedRouters": "Connected Routers",
+  "dashboard.soldSubscriptions": "Sold Subscriptions",
   "dashboard.pppoeCustomers": "PPPoE Customers",
   "dashboard.hotspotCustomers": "Hotspot Customers",
 
@@ -575,6 +577,8 @@ const ar: Dict = {
   "dashboard.managePackages": "إدارة الباقات",
   "dashboard.networkHealth": "صحة الشبكة",
   "dashboard.revenueByPackage": "الإيرادات حسب الباقة",
+  "dashboard.connectedRouters": "الراوترات المتصلة",
+  "dashboard.soldSubscriptions": "الاشتراكات المباعة",
   "dashboard.pppoeCustomers": "مشتركو PPPoE",
   "dashboard.hotspotCustomers": "مشتركو الهوت سبوت",
 
