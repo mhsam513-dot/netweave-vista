@@ -143,3 +143,11 @@
   -webkit-background-clip: text;
   color: transparent;
 }
+
+@utility font-arabic {
+  font-family: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+}
+
+[dir="rtl"] body {
+  font-family: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+}
