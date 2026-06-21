@@ -26,6 +26,7 @@ import { Route as AuthenticatedHotspotRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
+import { Route as AuthenticatedRoutersIdRouteImport } from './routes/_authenticated/routers.$id'
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -113,6 +114,11 @@ const AuthenticatedComplaintsRoute = AuthenticatedComplaintsRouteImport.update({
   path: '/complaints',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRoutersIdRoute = AuthenticatedRoutersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedRoutersRoute,
+} as any)
 const AuthenticatedCustomersIdRoute =
   AuthenticatedCustomersIdRouteImport.update({
     id: '/$id',
@@ -133,11 +139,12 @@ export interface FileRoutesByFullPath {
   '/payments': typeof AuthenticatedPaymentsRoute
   '/recharge': typeof AuthenticatedRechargeRoute
   '/reports': typeof AuthenticatedReportsRoute
-  '/routers': typeof AuthenticatedRoutersRoute
+  '/routers': typeof AuthenticatedRoutersRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/towers': typeof AuthenticatedTowersRoute
   '/users': typeof AuthenticatedUsersRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/routers/$id': typeof AuthenticatedRoutersIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,11 +159,12 @@ export interface FileRoutesByTo {
   '/payments': typeof AuthenticatedPaymentsRoute
   '/recharge': typeof AuthenticatedRechargeRoute
   '/reports': typeof AuthenticatedReportsRoute
-  '/routers': typeof AuthenticatedRoutersRoute
+  '/routers': typeof AuthenticatedRoutersRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/towers': typeof AuthenticatedTowersRoute
   '/users': typeof AuthenticatedUsersRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/routers/$id': typeof AuthenticatedRoutersIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -173,11 +181,12 @@ export interface FileRoutesById {
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/recharge': typeof AuthenticatedRechargeRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
-  '/_authenticated/routers': typeof AuthenticatedRoutersRoute
+  '/_authenticated/routers': typeof AuthenticatedRoutersRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/towers': typeof AuthenticatedTowersRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/_authenticated/routers/$id': typeof AuthenticatedRoutersIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/towers'
     | '/users'
     | '/customers/$id'
+    | '/routers/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/towers'
     | '/users'
     | '/customers/$id'
+    | '/routers/$id'
   id:
     | '__root__'
     | '/'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/towers'
     | '/_authenticated/users'
     | '/_authenticated/customers/$id'
+    | '/_authenticated/routers/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -367,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComplaintsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/routers/$id': {
+      id: '/_authenticated/routers/$id'
+      path: '/$id'
+      fullPath: '/routers/$id'
+      preLoaderRoute: typeof AuthenticatedRoutersIdRouteImport
+      parentRoute: typeof AuthenticatedRoutersRoute
+    }
     '/_authenticated/customers/$id': {
       id: '/_authenticated/customers/$id'
       path: '/$id'
@@ -391,6 +410,17 @@ const AuthenticatedCustomersRouteWithChildren =
     AuthenticatedCustomersRouteChildren,
   )
 
+interface AuthenticatedRoutersRouteChildren {
+  AuthenticatedRoutersIdRoute: typeof AuthenticatedRoutersIdRoute
+}
+
+const AuthenticatedRoutersRouteChildren: AuthenticatedRoutersRouteChildren = {
+  AuthenticatedRoutersIdRoute: AuthenticatedRoutersIdRoute,
+}
+
+const AuthenticatedRoutersRouteWithChildren =
+  AuthenticatedRoutersRoute._addFileChildren(AuthenticatedRoutersRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRouteWithChildren
@@ -402,7 +432,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedRechargeRoute: typeof AuthenticatedRechargeRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
-  AuthenticatedRoutersRoute: typeof AuthenticatedRoutersRoute
+  AuthenticatedRoutersRoute: typeof AuthenticatedRoutersRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTowersRoute: typeof AuthenticatedTowersRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
@@ -419,7 +449,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedRechargeRoute: AuthenticatedRechargeRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
-  AuthenticatedRoutersRoute: AuthenticatedRoutersRoute,
+  AuthenticatedRoutersRoute: AuthenticatedRoutersRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTowersRoute: AuthenticatedTowersRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,

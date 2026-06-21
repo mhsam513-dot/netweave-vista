@@ -1,32 +1,20 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Zap,
-  Radio,
-  BarChart3,
-  LogOut,
-  Wifi,
-  Menu,
-  X,
-  ShieldCheck,
-  FileText,
-  CreditCard,
-  Router,
-  Flame,
-  MessageSquareWarning,
-  Bell,
-  Settings,
-  ChevronDown,
-  ChevronRight,
+  LayoutDashboard, Users, Package, Zap, Radio, BarChart3, LogOut, Wifi,
+  Menu, ShieldCheck, FileText, CreditCard, Router, Flame,
+  MessageSquareWarning, Bell, Settings, ChevronDown, ChevronRight,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const COLLAPSED_KEY = "me-isp-sidebar-collapsed";
+const SECTIONS_KEY = "me-isp-sidebar-sections";
 
 type NavItem = {
   to: string;
@@ -48,15 +36,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openMobile, setOpenMobile] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem(COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
 
   const navSections: NavSection[] = [
     {
       key: "main",
       labelKey: "nav.section.main",
-      items: [
-        { to: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
-      ],
+      items: [{ to: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard }],
     },
     {
       key: "subscribers",
@@ -101,9 +90,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     {
       key: "analytics",
       labelKey: "nav.section.analytics",
-      items: [
-        { to: "/reports", label: t("nav.reports"), icon: BarChart3 },
-      ],
+      items: [{ to: "/reports", label: t("nav.reports"), icon: BarChart3 }],
     },
     {
       key: "admin",
@@ -116,9 +103,30 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
   ];
 
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
-    Object.fromEntries(navSections.map((s) => [s.key, true]))
-  );
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(SECTIONS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return Object.fromEntries(navSections.map((s) => [s.key, true]));
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(COLLAPSED_KEY, String(collapsed)); } catch {}
+  }, [collapsed]);
+
+  useEffect(() => {
+    try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(openSections)); } catch {}
+  }, [openSections]);
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["notifications-unread-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("is_read", false);
+      return count ?? 0;
+    },
+    refetchInterval: 30000,
+  });
 
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -150,11 +158,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="hidden lg:flex w-6 h-6 items-center justify-center rounded-md hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground shrink-0 transition-colors"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed
-            ? <ChevronRight className="w-4 h-4" />
-            : <ChevronDown className="w-4 h-4 rotate-90" />
-          }
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 rotate-90" />}
         </button>
       </div>
 
@@ -167,25 +173,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           return (
             <div key={section.key} className="mb-1">
-              {/* Section header */}
               {!collapsed && (
                 <button
                   onClick={() => toggleSection(section.key)}
                   className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/60 transition-colors"
                 >
                   <span>{t(section.labelKey)}</span>
-                  {openSections[section.key]
-                    ? <ChevronDown className="w-3 h-3" />
-                    : <ChevronRight className="w-3 h-3" />
-                  }
+                  {openSections[section.key] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </button>
               )}
 
-              {/* Section items */}
               {(collapsed || openSections[section.key]) && (
                 <div className="space-y-0.5">
                   {visibleItems.map((item) => {
                     const active = isActive(item.to);
+                    const isNotif = item.to === "/notifications";
                     return (
                       <Link
                         key={item.to}
@@ -200,11 +202,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
                         )}
                       >
-                        <item.icon className={cn("shrink-0", collapsed ? "w-5 h-5" : "w-4 h-4")} />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
+                        <div className="relative shrink-0">
+                          <item.icon className={cn("", collapsed ? "w-5 h-5" : "w-4 h-4")} />
+                          {isNotif && unreadCount > 0 && (
+                            <span className="absolute -top-1.5 -end-1.5 min-w-[14px] h-[14px] rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center px-0.5">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                          )}
+                        </div>
+                        {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+                        {!collapsed && isNotif && unreadCount > 0 && !active && (
+                          <span className="ms-auto min-w-[18px] h-[18px] rounded-full bg-rose-500/90 text-white text-[9px] font-bold flex items-center justify-center px-1 shrink-0">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </span>
+                        )}
                         {collapsed && (
                           <div className="absolute start-full ms-2 px-2 py-1 rounded-md bg-popover border border-border text-xs text-popover-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50 shadow-lg transition-opacity">
-                            {item.label}
+                            {item.label}{isNotif && unreadCount > 0 ? ` (${unreadCount})` : ""}
                           </div>
                         )}
                       </Link>
@@ -213,7 +227,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               )}
 
-              {/* Separator between sections */}
               {!collapsed && <div className="mx-3 my-1 border-t border-sidebar-border/30" />}
             </div>
           );
@@ -221,10 +234,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       {/* User footer */}
-      <div className={cn(
-        "border-t border-sidebar-border space-y-2",
-        collapsed ? "p-2" : "p-3"
-      )}>
+      <div className={cn("border-t border-sidebar-border space-y-2", collapsed ? "p-2" : "p-3")}>
         {!collapsed && (
           <div className="px-3 py-2 rounded-lg bg-sidebar-accent/40">
             <div className="text-[10px] text-sidebar-foreground/50">{t("common.signedInAs")}</div>
@@ -245,10 +255,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           variant="ghost"
           onClick={handleSignOut}
           title={collapsed ? t("common.signOut") : undefined}
-          className={cn(
-            "w-full text-sidebar-foreground/70 hover:text-sidebar-foreground",
-            collapsed ? "justify-center px-2" : "justify-start"
-          )}
+          className={cn("w-full text-sidebar-foreground/70 hover:text-sidebar-foreground", collapsed ? "justify-center px-2" : "justify-start")}
         >
           <LogOut className={cn("w-4 h-4 shrink-0", !collapsed && "mr-2 rtl:mr-0 rtl:ml-2")} />
           {!collapsed && t("common.signOut")}
@@ -296,6 +303,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-2">
+            <Link to="/notifications" className="relative p-2 rounded-md hover:bg-muted text-foreground/70 hover:text-foreground transition-colors" title="Notifications">
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 end-1 min-w-[16px] h-[16px] rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center px-0.5">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
             <LanguageSwitcher />
           </div>
         </header>

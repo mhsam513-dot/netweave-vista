@@ -532,6 +532,113 @@ export type Database = {
         }
         Relationships: []
       }
+      hotspot_cards: {
+        Row: {
+          id: string
+          code: string
+          profile: string | null
+          validity_days: number
+          bandwidth_limit: string | null
+          status: "unused" | "active" | "expired" | "revoked"
+          router_id: string | null
+          used_by: string | null
+          used_at: string | null
+          expires_at: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          profile?: string | null
+          validity_days?: number
+          bandwidth_limit?: string | null
+          status?: "unused" | "active" | "expired" | "revoked"
+          router_id?: string | null
+          used_by?: string | null
+          used_at?: string | null
+          expires_at?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          profile?: string | null
+          validity_days?: number
+          bandwidth_limit?: string | null
+          status?: "unused" | "active" | "expired" | "revoked"
+          router_id?: string | null
+          used_by?: string | null
+          used_at?: string | null
+          expires_at?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotspot_cards_router_id_fkey"
+            columns: ["router_id"]
+            isOneToOne: false
+            referencedRelation: "routers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settings: {
+        Row: {
+          id: number
+          company_name: string
+          company_email: string | null
+          company_phone: string | null
+          currency: string
+          timezone: string
+          invoice_prefix: string
+          invoice_due_days: number
+          tax_rate: number
+          default_network_profile: string | null
+          smtp_host: string | null
+          smtp_port: number | null
+          smtp_user: string | null
+          logo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          company_name?: string
+          company_email?: string | null
+          company_phone?: string | null
+          currency?: string
+          timezone?: string
+          invoice_prefix?: string
+          invoice_due_days?: number
+          tax_rate?: number
+          default_network_profile?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          company_name?: string
+          company_email?: string | null
+          company_phone?: string | null
+          currency?: string
+          timezone?: string
+          invoice_prefix?: string
+          invoice_due_days?: number
+          tax_rate?: number
+          default_network_profile?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
