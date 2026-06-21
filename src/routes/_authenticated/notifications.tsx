@@ -21,19 +21,29 @@ function NotificationsPage() {
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return data ?? [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const [notifRes, readsRes] = await Promise.all([
+        supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(100),
+        supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
+      ]);
+      if (notifRes.error) throw notifRes.error;
+      const readSet = new Set((readsRes.data ?? []).map((r: any) => r.notification_id));
+      return (notifRes.data ?? []).map((n: any) => ({
+        ...n,
+        user_read: n.is_read || readSet.has(n.id),
+      }));
     },
   });
 
   const markRead = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase.from("notification_reads").upsert(
+        { notification_id: id, user_id: user.id },
+        { onConflict: "notification_id,user_id" }
+      );
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
@@ -42,14 +52,22 @@ function NotificationsPage() {
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notifications").update({ is_read: true }).eq("is_read", false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const unread = notifications.filter((n: any) => !n.user_read);
+      if (unread.length === 0) return;
+      const rows = unread.map((n: any) => ({ notification_id: n.id, user_id: user.id }));
+      const { error } = await supabase.from("notification_reads").upsert(rows, { onConflict: "notification_id,user_id" });
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["notifications"] }); toast.success(t("notifications.markAllRead")); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success(t("notifications.markAllRead"));
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const unread = notifications.filter((n: any) => !n.is_read).length;
+  const unread = notifications.filter((n: any) => !n.user_read).length;
 
   const typeIcon: Record<string, any> = {
     info: Info,
@@ -102,7 +120,7 @@ function NotificationsPage() {
               const Icon = typeIcon[n.type ?? "info"] ?? Info;
               const colorClass = typeColor[n.type ?? "info"] ?? typeColor.info;
               return (
-                <div key={n.id} className={cn("flex items-start gap-4 p-4 transition-colors", !n.is_read && "bg-muted/10")}>
+                <div key={n.id} className={cn("flex items-start gap-4 p-4 transition-colors", !n.user_read && "bg-muted/10")}>
                   <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5", colorClass)}>
                     <Icon className="w-4 h-4" />
                   </div>
@@ -111,21 +129,19 @@ function NotificationsPage() {
                       <div className="font-semibold text-sm">{n.title}</div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-xs text-muted-foreground">{format(new Date(n.created_at), "MMM d, HH:mm")}</span>
-                        {!n.is_read && (
+                        {!n.user_read && (
                           <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => markRead.mutate(n.id)}>
                             <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                           </Button>
                         )}
                       </div>
                     </div>
-                    {n.message && <p className="text-sm text-muted-foreground mt-0.5">{n.message}</p>}
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", colorClass.replace("bg-", "border-").replace("/10", "/30"))}>
-                        {t(`notifications.type.${n.type ?? "info"}`)}
+                    {n.message && <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{n.message}</p>}
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className={cn("text-[10px] capitalize", colorClass)}>
+                        {n.type ?? "info"}
                       </Badge>
-                      {!n.is_read && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-                      )}
+                      {n.user_read && <span className="text-[10px] text-muted-foreground">{t("notifications.read")}</span>}
                     </div>
                   </div>
                 </div>

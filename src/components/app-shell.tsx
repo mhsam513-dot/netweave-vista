@@ -122,8 +122,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["notifications-unread-count"],
     queryFn: async () => {
-      const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("is_read", false);
-      return count ?? 0;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      const [notifRes, readsRes] = await Promise.all([
+        supabase.from("notifications").select("id"),
+        supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
+      ]);
+      const readSet = new Set((readsRes.data ?? []).map((r: any) => r.notification_id));
+      return (notifRes.data ?? []).filter((n: any) => !readSet.has(n.id)).length;
     },
     refetchInterval: 30000,
   });

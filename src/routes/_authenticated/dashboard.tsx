@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-  PieChart, Pie, Cell, BarChart, Bar,
+  PieChart, Pie, Cell, BarChart, Bar, LineChart, Line,
 } from "recharts";
-import { format, subDays, startOfMonth, startOfDay } from "date-fns";
+import { format, subDays, startOfMonth, startOfDay, subMonths, startOfMonth as soMonth } from "date-fns";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ function Dashboard() {
       const [
         customers, online, todayRev, monthRev, expired, suspended, pending,
         pppoe, hotspot, packages, towers, complaints, recent, chart, chartByPkg,
-        outstandingInvoices,
+        outstandingInvoices, newSubsRaw,
       ] = await Promise.all([
         supabase.from("customers").select("id", { count: "exact", head: true }),
         supabase.from("customers").select("id", { count: "exact", head: true }).eq("is_online", true),
@@ -58,6 +58,7 @@ function Dashboard() {
         supabase.from("recharges").select("amount, created_at").gte("created_at", last30),
         supabase.from("recharges").select("amount, package:packages(name)").gte("created_at", monthStart),
         supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "unpaid"),
+        supabase.from("customers").select("created_at").gte("created_at", subMonths(new Date(), 6).toISOString()),
       ]);
 
       const today = (todayRev.data ?? []).reduce((s, r) => s + Number(r.amount), 0);
@@ -89,6 +90,17 @@ function Dashboard() {
         { name: t("status.pending"), value: pending.count ?? 0 },
       ].filter((d) => d.value > 0);
 
+      const subsByMonth: Record<string, number> = {};
+      for (let i = 5; i >= 0; i--) {
+        const d = subMonths(new Date(), i);
+        subsByMonth[format(soMonth(d), "MMM yyyy")] = 0;
+      }
+      for (const c of newSubsRaw.data ?? []) {
+        const k = format(soMonth(new Date(c.created_at)), "MMM yyyy");
+        if (k in subsByMonth) subsByMonth[k] = (subsByMonth[k] ?? 0) + 1;
+      }
+      const subscriberGrowth = Object.entries(subsByMonth).map(([month, value]) => ({ month, value }));
+
       return {
         total: customers.count ?? 0, online: online.count ?? 0,
         today, month,
@@ -98,7 +110,7 @@ function Dashboard() {
         packages: packages.count ?? 0, towers: towers.count ?? 0,
         complaints: complaints.count ?? 0,
         outstanding: outstandingInvoices.count ?? 0,
-        recent: recent.data ?? [], chartData, packageChartData, statusPie,
+        recent: recent.data ?? [], chartData, packageChartData, statusPie, subscriberGrowth,
       };
     },
   });
@@ -210,7 +222,43 @@ function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Charts Row 2 — Subscriber Growth + Network Usage */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="gradient-card border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("dashboard.subscriberGrowth")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data?.subscriberGrowth ?? []}>
+                  <CartesianGrid stroke="oklch(1 0 0 / 0.06)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "oklch(0.7 0.03 280)" }} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "oklch(0.7 0.03 280)" }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: "oklch(0.21 0.05 275)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8, color: "white", fontSize: 12 }} />
+                  <Line type="monotone" dataKey="value" stroke="oklch(0.72 0.22 160)" strokeWidth={2.5} dot={{ fill: "oklch(0.72 0.22 160)", r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="gradient-card border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("dashboard.networkUsage")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-52 flex flex-col items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center">
+                <Wifi className="w-6 h-6 text-cyan-400" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center max-w-xs">{t("dashboard.networkUsagePlaceholder")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 3 */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="gradient-card border-border/50">
           <CardHeader className="pb-2">

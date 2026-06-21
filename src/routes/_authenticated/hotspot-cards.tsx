@@ -28,6 +28,17 @@ function generateCode(): string {
   return Array.from({ length: 12 }, (_, i) => (i === 4 || i === 8 ? "-" : chars[Math.floor(Math.random() * chars.length)])).join("");
 }
 
+function generateUsername(idx: number): string {
+  const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  const suffix = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `hs_${String(idx + 1).padStart(3, "0")}${suffix}`;
+}
+
+function generatePassword(): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
 function HotspotPage() {
   const { isAdmin, canRecharge } = useAuth();
   const { t } = useI18n();
@@ -70,9 +81,9 @@ function HotspotPage() {
     expired: cards.filter((c: any) => c.status === "expired").length,
   };
 
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success("Code copied!");
+  const copyText = (text: string, label = "Copied!") => {
+    navigator.clipboard.writeText(text);
+    toast.success(label);
   };
 
   const printCards = () => {
@@ -83,13 +94,18 @@ function HotspotPage() {
       <html><head><title>Hotspot Cards</title>
       <style>
         body { font-family: monospace; }
-        .card { display: inline-block; border: 2px dashed #666; padding: 12px 16px; margin: 8px; border-radius: 8px; width: 180px; text-align: center; }
-        .code { font-size: 14px; font-weight: bold; letter-spacing: 1px; }
+        .card { display: inline-block; border: 2px dashed #666; padding: 12px 16px; margin: 8px; border-radius: 8px; width: 200px; text-align: center; }
+        .code { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+        .cred { font-size: 12px; margin-top: 3px; }
+        .label { font-size: 10px; color: #999; }
         .meta { font-size: 11px; color: #666; margin-top: 4px; }
       </style></head><body>
       <h2>Hotspot Access Cards</h2>
       ${unused.map((c: any) => `
         <div class="card">
+          ${c.username ? `<div class="label">Username</div><div class="cred">${c.username}</div>` : ""}
+          ${c.password ? `<div class="label">Password</div><div class="cred">${c.password}</div>` : ""}
+          <div class="label" style="margin-top:6px">Code</div>
           <div class="code">${c.code}</div>
           <div class="meta">${c.validity_days}d · ${c.profile ?? "Default"}</div>
           ${c.bandwidth_limit ? `<div class="meta">${c.bandwidth_limit}</div>` : ""}
@@ -169,40 +185,62 @@ function HotspotPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Username</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>Profile</TableHead>
                 <TableHead>Validity</TableHead>
                 <TableHead>Bandwidth</TableHead>
                 <TableHead>Router</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Used By</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-end">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
-                <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">{t("common.loading")}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-10 text-muted-foreground">{t("common.loading")}</TableCell></TableRow>
               )}
               {!isLoading && cards.length === 0 && (
-                <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">{t("hotspot.empty")}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-10 text-muted-foreground">{t("hotspot.empty")}</TableCell></TableRow>
               )}
               {cards.map((c: any) => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <code className="font-mono text-sm font-bold tracking-widest">{c.code}</code>
+                    <div className="flex items-center gap-1">
+                      <code className="font-mono text-xs">{c.username ?? "—"}</code>
+                      {c.username && (
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => copyText(c.username, "Username copied!")} title="Copy username">
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <code className="font-mono text-xs">{c.password ?? "—"}</code>
+                      {c.password && (
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => copyText(c.password, "Password copied!")} title="Copy password">
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <code className="font-mono text-xs font-bold tracking-widest">{c.code}</code>
+                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => copyText(c.code, "Code copied!")} title="Copy code">
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm">{c.profile ?? "Default"}</TableCell>
                   <TableCell className="text-sm">{c.validity_days}d</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{c.bandwidth_limit ?? "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{(c.router as any)?.name ?? "—"}</TableCell>
                   <TableCell><CardStatusBadge status={c.status} /></TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{c.used_by ?? "—"}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, yyyy")}</TableCell>
                   <TableCell className="text-end space-x-1">
-                    <Button size="sm" variant="ghost" onClick={() => copyCode(c.code)} title="Copy code">
-                      <Copy className="w-4 h-4" />
-                    </Button>
                     {isAdmin && (
                       <Button size="sm" variant="ghost" onClick={() => del.mutate(c.id)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
@@ -244,8 +282,10 @@ function GenerateCardsForm({ routers, onDone }: { routers: any[]; onDone: () => 
     e.preventDefault();
     setBusy(true);
     const count = Math.min(Math.max(1, parseInt(form.count) || 10), 100);
-    const cards = Array.from({ length: count }, () => ({
+    const cards = Array.from({ length: count }, (_, idx) => ({
       code: generateCode(),
+      username: generateUsername(idx),
+      password: generatePassword(),
       validity_days: parseInt(form.validity_days) || 1,
       profile: form.profile || null,
       bandwidth_limit: form.bandwidth_limit || null,

@@ -163,6 +163,8 @@ CREATE POLICY "payments_delete" ON public.payments FOR DELETE TO authenticated
 CREATE TABLE IF NOT EXISTS public.hotspot_cards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
+  username TEXT,
+  password TEXT,
   profile TEXT,
   validity_days INTEGER NOT NULL DEFAULT 1,
   bandwidth_limit TEXT,
@@ -186,6 +188,27 @@ CREATE POLICY "hotspot_cards_update" ON public.hotspot_cards FOR UPDATE TO authe
   WITH CHECK (public.current_user_has_role('admin') OR public.current_user_has_role('recharge'));
 CREATE POLICY "hotspot_cards_delete" ON public.hotspot_cards FOR DELETE TO authenticated
   USING (public.current_user_has_role('admin'));
+
+-- ============================================================
+-- Notification Reads — per-user read receipts for global notifications
+-- (allows non-admin users to mark global notifications as read without
+--  mutating the shared notifications row, avoiding RLS violations)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.notification_reads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  notification_id UUID NOT NULL REFERENCES public.notifications(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  read_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (notification_id, user_id)
+);
+ALTER TABLE public.notification_reads ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT ON public.notification_reads TO authenticated;
+GRANT ALL ON public.notification_reads TO service_role;
+-- Users can only read/insert their own read receipts
+CREATE POLICY "notif_reads_select" ON public.notification_reads FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+CREATE POLICY "notif_reads_insert" ON public.notification_reads FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid());
 
 -- ============================================================
 -- Settings (single-row per company; admin write, all read)
