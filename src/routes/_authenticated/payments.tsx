@@ -176,19 +176,47 @@ function PaymentsPage() {
 
 function PaymentForm({ customers, onDone }: { customers: any[]; onDone: () => void }) {
   const { t } = useI18n();
-  const [form, setForm] = useState({ customer_id: "", amount: "", method: "cash", reference: "", notes: "" });
+  const [form, setForm] = useState({ customer_id: "", invoice_id: "", amount: "", method: "cash", reference: "", notes: "" });
   const [busy, setBusy] = useState(false);
+
+  const { data: openInvoices = [] } = useQuery({
+    queryKey: ["open-invoices", form.customer_id],
+    enabled: !!form.customer_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, amount, status")
+        .eq("customer_id", form.customer_id)
+        .in("status", ["unpaid", "overdue"])
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const handleCustomerChange = (v: string) => {
+    setForm((f) => ({ ...f, customer_id: v, invoice_id: "" }));
+  };
+
+  const handleInvoiceChange = (v: string) => {
+    const inv = openInvoices.find((i: any) => i.id === v);
+    setForm((f) => ({ ...f, invoice_id: v, amount: inv ? String(inv.amount) : f.amount }));
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.from("payments").insert({
       customer_id: form.customer_id || null,
+      invoice_id: form.invoice_id || null,
       amount: Number(form.amount),
       method: form.method as "cash" | "bank" | "online",
       reference: form.reference || null,
       notes: form.notes || null,
     });
+    // Mark linked invoice as paid
+    if (!error && form.invoice_id) {
+      await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", form.invoice_id);
+    }
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(t("payments.created"));
@@ -201,13 +229,29 @@ function PaymentForm({ customers, onDone }: { customers: any[]; onDone: () => vo
       <form onSubmit={submit} className="grid gap-4">
         <div className="space-y-1.5">
           <Label className="text-xs">{t("payments.f.customer")}</Label>
-          <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v })}>
+          <Select value={form.customer_id} onValueChange={handleCustomerChange}>
             <SelectTrigger><SelectValue placeholder={t("common.none")} /></SelectTrigger>
             <SelectContent>
               {customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name} — {c.code}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
+        {form.customer_id && (
+          <div className="space-y-1.5">
+            <Label className="text-xs">{t("payments.f.invoice")} <span className="text-muted-foreground">(optional)</span></Label>
+            <Select value={form.invoice_id} onValueChange={handleInvoiceChange}>
+              <SelectTrigger><SelectValue placeholder={t("common.none")} /></SelectTrigger>
+              <SelectContent>
+                {openInvoices.length === 0 && <SelectItem value="_none" disabled>{t("invoices.empty")}</SelectItem>}
+                {openInvoices.map((i: any) => (
+                  <SelectItem key={i.id} value={i.id}>
+                    INV-{String(i.invoice_number ?? i.id.slice(0,6)).toUpperCase()} — {i.status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs">{t("payments.f.amount")}</Label>

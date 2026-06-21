@@ -28,7 +28,11 @@ function RouterDetailPage() {
   const { data: router, isLoading } = useQuery({
     queryKey: ["router", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("routers").select("*").eq("id", id).single();
+      const { data, error } = await supabase
+        .from("routers")
+        .select("id, name, ip_address, api_port, model, username, location, is_online, client_count, created_at, updated_at")
+        .eq("id", id)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -52,7 +56,7 @@ function RouterDetailPage() {
         model: router.model ?? "",
         api_port: String(router.api_port ?? 8728),
         username: router.username ?? "admin",
-        password: router.password ?? "",
+        password: "", // write-only: leave blank to keep existing, enter new value to update
         location: router.location ?? "",
       });
       setEditing(true);
@@ -67,7 +71,8 @@ function RouterDetailPage() {
         model: form.model || null,
         api_port: parseInt(form.api_port) || 8728,
         username: form.username || null,
-        password: form.password || null,
+        // Only update password if a new value was entered (write-only field)
+        ...(form.password ? { password: form.password } : {}),
         location: form.location || null,
         updated_at: new Date().toISOString(),
       }).eq("id", id);

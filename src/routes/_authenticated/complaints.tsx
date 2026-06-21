@@ -209,6 +209,7 @@ function ComplaintForm({ editing, customers, onDone }: { editing: any; customers
     customer_id: editing?.customer_id ?? "",
     subject: editing?.subject ?? "",
     description: editing?.description ?? "",
+    technician_notes: editing?.technician_notes ?? "",
     priority: editing?.priority ?? "medium",
     status: editing?.status ?? "open",
   });
@@ -217,7 +218,14 @@ function ComplaintForm({ editing, customers, onDone }: { editing: any; customers
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const payload = { ...form, customer_id: form.customer_id || null };
+    const payload = {
+      customer_id: form.customer_id || null,
+      subject: form.subject,
+      description: form.description || null,
+      technician_notes: form.technician_notes || null,
+      priority: form.priority,
+      status: form.status,
+    };
     const res = editing
       ? await supabase.from("complaints").update(payload).eq("id", editing.id)
       : await supabase.from("complaints").insert(payload);
@@ -247,6 +255,14 @@ function ComplaintForm({ editing, customers, onDone }: { editing: any; customers
         <div className="space-y-1.5">
           <Label className="text-xs">{t("complaints.f.description")}</Label>
           <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">{t("complaints.f.technicianNotes")}</Label>
+          <Input
+            value={form.technician_notes}
+            onChange={(e) => setForm({ ...form, technician_notes: e.target.value })}
+            placeholder={t("complaints.f.technicianNotesPlaceholder")}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">

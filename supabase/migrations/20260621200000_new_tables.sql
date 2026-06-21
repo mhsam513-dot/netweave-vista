@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.complaints (
   customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
   subject TEXT NOT NULL,
   description TEXT,
+  technician_notes TEXT,
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'inProgress', 'resolved', 'closed')),
   assigned_to UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -89,9 +90,14 @@ CREATE POLICY "notifications_read_own" ON public.notifications FOR SELECT TO aut
   USING (user_id IS NULL OR user_id = auth.uid());
 CREATE POLICY "notifications_insert_admin" ON public.notifications FOR INSERT TO authenticated
   WITH CHECK (public.current_user_has_role('admin'));
+-- Users can only mark their own per-user notifications (not global ones) as read
 CREATE POLICY "notifications_update_own" ON public.notifications FOR UPDATE TO authenticated
-  USING (user_id IS NULL OR user_id = auth.uid())
-  WITH CHECK (user_id IS NULL OR user_id = auth.uid());
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+-- Admins can update global (user_id IS NULL) notifications
+CREATE POLICY "notifications_update_global_admin" ON public.notifications FOR UPDATE TO authenticated
+  USING (user_id IS NULL AND public.current_user_has_role('admin'))
+  WITH CHECK (user_id IS NULL AND public.current_user_has_role('admin'));
 CREATE POLICY "notifications_delete_admin" ON public.notifications FOR DELETE TO authenticated
   USING (public.current_user_has_role('admin'));
 

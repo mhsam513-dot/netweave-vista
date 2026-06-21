@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, FileText, CheckCircle, Trash2, DollarSign, AlertTriangle, Clock } from "lucide-react";
+import { Plus, FileText, CheckCircle, Trash2, DollarSign, AlertTriangle, Clock, Pencil } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ function InvoicesPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: invoices = [], isLoading } = useQuery({
@@ -80,13 +81,13 @@ function InvoicesPage() {
           <p className="text-muted-foreground text-sm mt-1">{t("invoices.subtitle")}</p>
         </div>
         {isAdmin && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
             <DialogTrigger asChild>
               <Button className="gradient-brand text-primary-foreground shadow-glow">
                 <Plus className="w-4 h-4 me-1" /> {t("invoices.new")}
               </Button>
             </DialogTrigger>
-            <InvoiceForm customers={customers} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["invoices"] }); }} />
+            <InvoiceForm key={editing?.id ?? "new"} editing={editing} customers={customers} onDone={() => { setOpen(false); setEditing(null); qc.invalidateQueries({ queryKey: ["invoices"] }); }} />
           </Dialog>
         )}
       </div>
@@ -154,6 +155,9 @@ function InvoicesPage() {
                           <CheckCircle className="w-4 h-4 text-emerald-400" />
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" onClick={() => { setEditing(inv); setOpen(true); }} title={t("common.edit")}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => del.mutate(inv.id)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -194,30 +198,39 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
   );
 }
 
-function InvoiceForm({ customers, onDone }: { customers: any[]; onDone: () => void }) {
+function InvoiceForm({ editing, customers, onDone }: { editing: any; customers: any[]; onDone: () => void }) {
   const { t } = useI18n();
-  const [form, setForm] = useState({ customer_id: "", amount: "", due_date: "", notes: "", status: "unpaid" });
+  const [form, setForm] = useState({
+    customer_id: editing?.customer_id ?? "",
+    amount: editing?.amount ? String(editing.amount) : "",
+    due_date: editing?.due_date ? editing.due_date.split("T")[0] : "",
+    notes: editing?.notes ?? "",
+    status: editing?.status ?? "unpaid",
+  });
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.from("invoices").insert({
+    const payload = {
       customer_id: form.customer_id || null,
       amount: Number(form.amount),
       due_date: form.due_date || null,
       notes: form.notes || null,
       status: form.status as "unpaid" | "paid" | "overdue",
-    });
+    };
+    const res = editing
+      ? await supabase.from("invoices").update(payload).eq("id", editing.id)
+      : await supabase.from("invoices").insert(payload);
     setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(t("invoices.created"));
+    if (res.error) return toast.error(res.error.message);
+    toast.success(editing ? t("invoices.updated") : t("invoices.created"));
     onDone();
   };
 
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>{t("invoices.new")}</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{editing ? t("common.edit") : t("invoices.new")}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="grid gap-4">
         <div className="space-y-1.5">
           <Label className="text-xs">{t("invoices.f.customer")}</Label>
@@ -255,7 +268,7 @@ function InvoiceForm({ customers, onDone }: { customers: any[]; onDone: () => vo
         </div>
         <DialogFooter>
           <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">
-            {busy ? t("common.saving") : t("common.create")}
+            {busy ? t("common.saving") : editing ? t("common.saveChanges") : t("common.create")}
           </Button>
         </DialogFooter>
       </form>

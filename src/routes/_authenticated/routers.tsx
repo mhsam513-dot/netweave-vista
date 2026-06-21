@@ -30,7 +30,10 @@ function RoutersPage() {
   const { data: routers = [], isLoading } = useQuery({
     queryKey: ["routers"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("routers").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("routers")
+        .select("id, name, ip_address, api_port, model, username, location, is_online, client_count, created_at, updated_at")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
