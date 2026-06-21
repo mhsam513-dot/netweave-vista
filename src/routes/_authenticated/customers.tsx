@@ -82,7 +82,7 @@ function CustomersPage() {
   }, [customersQ.data, q, statusFilter]);
 
   const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: any }) => {
       const { error } = await supabase.from("customers").update({ status }).eq("id", id);
       if (error) throw error;
     },

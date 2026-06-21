@@ -35,7 +35,7 @@ function UsersPage() {
   });
 
   const toggle = useMutation({
-    mutationFn: async ({ userId, role, has }: { userId: string; role: string; has: boolean }) => {
+    mutationFn: async ({ userId, role, has }: { userId: string; role: any; has: boolean }) => {
       if (has) {
         const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
         if (error) throw error;
