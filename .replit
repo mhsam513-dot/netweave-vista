@@ -36,5 +36,5 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bun", "run", "preview"]
+run = ["bun", "run", "preview", "--", "--port", "5000", "--host", "0.0.0.0"]
 build = ["bun", "run", "build"]
