@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Router, Pencil, Trash2, Wifi, WifiOff } from "lucide-react";
+import { Plus, Router, Pencil, Trash2, Wifi, WifiOff, ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -93,10 +94,17 @@ function RoutersPage() {
                 <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">{t("routers.empty")}</TableCell></TableRow>
               )}
               {routers.map((r: any) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-semibold flex items-center gap-2">
-                    <Router className="w-4 h-4 text-violet-400 shrink-0" />
-                    {r.name}
+                <TableRow key={r.id} className="group">
+                  <TableCell>
+                    <Link
+                      to="/routers/$id"
+                      params={{ id: r.id }}
+                      className="flex items-center gap-2 font-semibold hover:text-accent transition-colors group-hover:underline"
+                    >
+                      <Router className="w-4 h-4 text-violet-400 shrink-0" />
+                      {r.name}
+                      <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{r.ip_address ?? "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{r.model ?? "—"}</TableCell>

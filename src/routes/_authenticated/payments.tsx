@@ -49,6 +49,22 @@ function PaymentsPage() {
     queryFn: async () => (await supabase.from("customers").select("id, full_name, code").order("full_name")).data ?? [],
   });
 
+  const { data: summaries } = useQuery({
+    queryKey: ["payments-summary"],
+    queryFn: async () => {
+      const todayStart = startOfDay(new Date()).toISOString();
+      const monthStart = startOfMonth(new Date()).toISOString();
+      const [today, month] = await Promise.all([
+        supabase.from("payments").select("amount").gte("created_at", todayStart),
+        supabase.from("payments").select("amount").gte("created_at", monthStart),
+      ]);
+      return {
+        today: (today.data ?? []).reduce((s, p) => s + Number(p.amount), 0),
+        month: (month.data ?? []).reduce((s, p) => s + Number(p.amount), 0),
+      };
+    },
+  });
+
   const totalAmount = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
 
   return (
@@ -75,30 +91,30 @@ function PaymentsPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-transparent opacity-50" />
           <CardContent className="p-4 relative">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">{t("common.all")} Payments</span>
+              <span className="text-xs text-muted-foreground">{t("payments.totalToday")}</span>
               <CreditCard className="w-4 h-4 text-violet-400" />
             </div>
-            <div className="text-2xl font-bold">{payments.length}</div>
+            <div className="text-2xl font-bold">{fmtMoney(summaries?.today ?? 0)}</div>
           </CardContent>
         </Card>
         <Card className="gradient-card border-border/50 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent opacity-50" />
           <CardContent className="p-4 relative">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Total Collected</span>
+              <span className="text-xs text-muted-foreground">{t("payments.totalMonth")}</span>
               <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-2xl font-bold">{fmtMoney(totalAmount)}</div>
+            <div className="text-2xl font-bold">{fmtMoney(summaries?.month ?? 0)}</div>
           </CardContent>
         </Card>
         <Card className="gradient-card border-border/50 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-50" />
           <CardContent className="p-4 relative">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Average Payment</span>
+              <span className="text-xs text-muted-foreground">Currently Shown</span>
               <TrendingUp className="w-4 h-4 text-blue-400" />
             </div>
-            <div className="text-2xl font-bold">{payments.length > 0 ? fmtMoney(totalAmount / payments.length) : "—"}</div>
+            <div className="text-2xl font-bold">{fmtMoney(totalAmount)}</div>
           </CardContent>
         </Card>
       </div>

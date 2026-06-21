@@ -40,6 +40,7 @@ function Dashboard() {
       const [
         customers, online, todayRev, monthRev, expired, suspended, pending,
         pppoe, hotspot, packages, towers, complaints, recent, chart, chartByPkg,
+        outstandingInvoices,
       ] = await Promise.all([
         supabase.from("customers").select("id", { count: "exact", head: true }),
         supabase.from("customers").select("id", { count: "exact", head: true }).eq("is_online", true),
@@ -56,6 +57,7 @@ function Dashboard() {
         supabase.from("recharges").select("id, amount, created_at, customer:customers(full_name, code), package:packages(name)").order("created_at", { ascending: false }).limit(6),
         supabase.from("recharges").select("amount, created_at").gte("created_at", last30),
         supabase.from("recharges").select("amount, package:packages(name)").gte("created_at", monthStart),
+        supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "unpaid"),
       ]);
 
       const today = (todayRev.data ?? []).reduce((s, r) => s + Number(r.amount), 0);
@@ -95,6 +97,7 @@ function Dashboard() {
         pppoe: pppoe.count ?? 0, hotspot: hotspot.count ?? 0,
         packages: packages.count ?? 0, towers: towers.count ?? 0,
         complaints: complaints.count ?? 0,
+        outstanding: outstandingInvoices.count ?? 0,
         recent: recent.data ?? [], chartData, packageChartData, statusPie,
       };
     },
@@ -106,13 +109,13 @@ function Dashboard() {
     { label: t("dashboard.activeCustomers"), value: data?.active ?? 0, icon: UserCheck, accent: "from-green-500/20", iconColor: "text-green-400" },
     { label: t("dashboard.todayRevenue"), value: fmtMoney(data?.today ?? 0), icon: DollarSign, accent: "from-violet-500/20", iconColor: "text-violet-400" },
     { label: t("dashboard.monthlyRevenue"), value: fmtMoney(data?.month ?? 0), icon: TrendingUp, accent: "from-fuchsia-500/20", iconColor: "text-fuchsia-400" },
+    { label: t("dashboard.pendingInvoices"), value: data?.outstanding ?? 0, icon: FileText, accent: "from-rose-500/20", iconColor: "text-rose-400" },
     { label: t("dashboard.expiredCustomers"), value: data?.expired ?? 0, icon: AlertTriangle, accent: "from-orange-500/20", iconColor: "text-orange-400" },
     { label: t("dashboard.suspendedCustomers"), value: data?.suspended ?? 0, icon: UserX, accent: "from-red-500/20", iconColor: "text-red-400" },
     { label: t("dashboard.pendingCustomers"), value: data?.pending ?? 0, icon: Clock, accent: "from-slate-500/20", iconColor: "text-slate-400" },
     { label: t("dashboard.pppoeCustomers"), value: data?.pppoe ?? 0, icon: Zap, accent: "from-yellow-500/20", iconColor: "text-yellow-400" },
     { label: t("dashboard.hotspotCustomers"), value: data?.hotspot ?? 0, icon: Wifi, accent: "from-cyan-500/20", iconColor: "text-cyan-400" },
-    { label: t("dashboard.totalPackages"), value: data?.packages ?? 0, icon: Package, accent: "from-indigo-500/20", iconColor: "text-indigo-400" },
-    { label: t("dashboard.totalTowers"), value: data?.towers ?? 0, icon: Radio, accent: "from-teal-500/20", iconColor: "text-teal-400" },
+    { label: t("dashboard.openComplaints"), value: data?.complaints ?? 0, icon: MessageSquareWarning, accent: "from-amber-500/20", iconColor: "text-amber-400" },
   ];
 
   return (

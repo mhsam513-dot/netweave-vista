@@ -93,21 +93,50 @@ function SettingsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  if (!isAdmin) {
+  const readOnly = !isAdmin;
+
+  const handleSave = () => save.mutate(form);
+
+  if (readOnly && settingsData) {
+    const rows: [string, string][] = [
+      [t("settings.f.companyName"), settingsData.company_name ?? "—"],
+      [t("settings.f.companyEmail"), settingsData.company_email ?? "—"],
+      [t("settings.f.companyPhone"), settingsData.company_phone ?? "—"],
+      [t("settings.f.currency"), settingsData.currency ?? "—"],
+      [t("settings.f.timezone"), settingsData.timezone ?? "—"],
+      [t("settings.f.invoicePrefix"), settingsData.invoice_prefix ?? "—"],
+      [t("settings.f.dueDays"), String(settingsData.invoice_due_days ?? 30)],
+    ];
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="gradient-card border-border/50 max-w-md w-full">
-          <CardContent className="p-10 text-center space-y-3">
-            <Shield className="w-12 h-12 mx-auto text-muted-foreground/40" />
-            <h2 className="text-xl font-bold">Admin Access Required</h2>
-            <p className="text-sm text-muted-foreground">Only administrators can access settings.</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("settings.subtitle")}</p>
+        </div>
+        <Card className="gradient-card border-border/50 max-w-2xl">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base flex-1">{t("settings.general.title")}</CardTitle>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
+                <Shield className="w-3 h-3" /> Read-only
+              </div>
+            </div>
+            <CardDescription className="text-xs">Contact your administrator to change these settings.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+              {rows.map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-muted-foreground text-xs">{label}</dt>
+                  <dd className="font-medium mt-0.5">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </CardContent>
         </Card>
       </div>
     );
   }
-
-  const handleSave = () => save.mutate(form);
 
   return (
     <div className="space-y-6">

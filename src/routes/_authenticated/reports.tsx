@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line } from "recharts";
 import { useI18n } from "@/lib/i18n";
-import { Download, TrendingUp, DollarSign, Users, UserCheck } from "lucide-react";
+import { Download, TrendingUp, DollarSign, Users, UserCheck, FileText } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ function ReportsPage() {
       const monthStart = startOfMonth(new Date()).toISOString();
       const periodStart = subDays(new Date(), days - 1).toISOString();
 
-      const [today, month, history, statuses] = await Promise.all([
+      const [today, month, history, statuses, pkgSubs, outstandingInv] = await Promise.all([
         supabase.from("recharges").select("amount").gte("created_at", todayStart),
         supabase.from("recharges").select("amount").gte("created_at", monthStart),
         supabase
@@ -38,6 +38,8 @@ function ReportsPage() {
           .order("created_at", { ascending: false })
           .limit(50),
         supabase.from("customers").select("status"),
+        supabase.from("customers").select("package:packages(name), status").not("package_id", "is", null),
+        supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "unpaid"),
       ]);
 
       const dailyMap: Record<string, number> = {};
@@ -51,12 +53,24 @@ function ReportsPage() {
       const statusCount: Record<string, number> = { active: 0, suspended: 0, expired: 0, pending: 0 };
       for (const c of statuses.data ?? []) statusCount[c.status] = (statusCount[c.status] ?? 0) + 1;
 
+      const pkgSubMap: Record<string, number> = {};
+      for (const c of pkgSubs.data ?? []) {
+        const name = (c.package as any)?.name ?? "None";
+        pkgSubMap[name] = (pkgSubMap[name] ?? 0) + 1;
+      }
+      const topPackages = Object.entries(pkgSubMap)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+
       return {
         today: (today.data ?? []).reduce((s, r) => s + Number(r.amount), 0),
         month: (month.data ?? []).reduce((s, r) => s + Number(r.amount), 0),
         history: history.data ?? [],
         daily: Object.entries(dailyMap).map(([date, value]) => ({ date, value })),
         statusCount,
+        topPackages,
+        outstanding: outstandingInv.count ?? 0,
       };
     },
   });
@@ -87,7 +101,7 @@ function ReportsPage() {
     { label: t("dashboard.todayRevenue"), value: fmt(data?.today ?? 0), icon: DollarSign, color: "text-violet-400 from-violet-500/20" },
     { label: t("dashboard.monthlyRevenue"), value: fmt(data?.month ?? 0), icon: TrendingUp, color: "text-fuchsia-400 from-fuchsia-500/20" },
     { label: t("reports.activeCustomers"), value: data?.statusCount.active ?? 0, icon: UserCheck, color: "text-emerald-400 from-emerald-500/20" },
-    { label: t("dashboard.expiredCustomers"), value: data?.statusCount.expired ?? 0, icon: Users, color: "text-orange-400 from-orange-500/20" },
+    { label: "Outstanding Invoices", value: data?.outstanding ?? 0, icon: FileText, color: "text-rose-400 from-rose-500/20" },
   ];
 
   return (
@@ -171,6 +185,29 @@ function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Packages by Subscribers */}
+      <Card className="gradient-card border-border/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Top Packages by Subscribers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(data?.topPackages ?? []).length === 0 ? (
+            <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">No package data yet.</div>
+          ) : (
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data?.topPackages ?? []} layout="vertical" margin={{ left: 0, right: 16 }}>
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "oklch(0.7 0.03 280)" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "oklch(0.7 0.03 280)" }} tickLine={false} axisLine={false} width={90} />
+                  <Tooltip contentStyle={{ background: "oklch(0.21 0.05 275)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: any) => [v, "Subscribers"]} />
+                  <Bar dataKey="count" fill="oklch(0.65 0.25 155)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="gradient-card border-border/50">
         <CardHeader className="pb-2">
