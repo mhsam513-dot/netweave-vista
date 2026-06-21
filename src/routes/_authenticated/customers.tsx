@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Pause, Play, Plus, Search, Pencil } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   component: CustomersPage,
@@ -35,6 +36,7 @@ type Customer = any;
 
 function CustomersPage() {
   const { isAdmin, canRecharge } = useAuth();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -88,7 +90,7 @@ function CustomersPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      toast.success("Customer updated");
+      toast.success(t("customers.updated"));
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -97,8 +99,8 @@ function CustomersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage broadband and hotspot subscribers.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("customers.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("customers.subtitle")}</p>
         </div>
         {isAdmin && (
           <Dialog
@@ -110,7 +112,7 @@ function CustomersPage() {
           >
             <DialogTrigger asChild>
               <Button className="gradient-brand text-primary-foreground shadow-glow">
-                <Plus className="w-4 h-4 mr-1" /> Add customer
+                <Plus className="w-4 h-4 me-1" /> {t("customers.add")}
               </Button>
             </DialogTrigger>
             <CustomerForm
@@ -133,12 +135,12 @@ function CustomersPage() {
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search name, code, username, phone…"
-                className="pl-9"
+                placeholder={t("customers.searchPlaceholder")}
+                className="ps-9"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -146,11 +148,11 @@ function CustomersPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-                <SelectItem value="expired">Expired</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="all">{t("status.all")}</SelectItem>
+                <SelectItem value="active">{t("status.active")}</SelectItem>
+                <SelectItem value="suspended">{t("status.suspended")}</SelectItem>
+                <SelectItem value="expired">{t("status.expired")}</SelectItem>
+                <SelectItem value="pending">{t("status.pending")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -159,20 +161,20 @@ function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Package</TableHead>
-                  <TableHead>Tower</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("customers.col.code")}</TableHead>
+                  <TableHead>{t("customers.col.name")}</TableHead>
+                  <TableHead>{t("customers.col.service")}</TableHead>
+                  <TableHead>{t("customers.col.package")}</TableHead>
+                  <TableHead>{t("customers.col.tower")}</TableHead>
+                  <TableHead>{t("customers.col.status")}</TableHead>
+                  <TableHead className="text-end">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
-                      No customers found.
+                      {t("customers.empty")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -185,7 +187,7 @@ function CustomersPage() {
                       </Link>
                       <div className="text-xs text-muted-foreground">{c.phone ?? "—"}</div>
                     </TableCell>
-                    <TableCell className="capitalize">{c.service_type}</TableCell>
+                    <TableCell>{t(`service.${c.service_type}`)}</TableCell>
                     <TableCell>{c.package?.name ?? "—"}</TableCell>
                     <TableCell>
                       {c.tower?.name ?? "—"}
@@ -194,7 +196,7 @@ function CustomersPage() {
                     <TableCell>
                       <StatusBadge status={c.status} />
                     </TableCell>
-                    <TableCell className="text-right space-x-1">
+                    <TableCell className="text-end space-x-1">
                       {(isAdmin || canRecharge) &&
                         (c.status === "active" ? (
                           <Button
@@ -238,13 +240,14 @@ function CustomersPage() {
 }
 
 export function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   const map: Record<string, string> = {
     active: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
     suspended: "bg-orange-500/15 text-orange-300 border-orange-500/30",
     expired: "bg-rose-500/15 text-rose-300 border-rose-500/30",
     pending: "bg-slate-500/15 text-slate-300 border-slate-500/30",
   };
-  return <Badge variant="outline" className={`capitalize ${map[status] ?? ""}`}>{status}</Badge>;
+  return <Badge variant="outline" className={map[status] ?? ""}>{t(`status.${status}`)}</Badge>;
 }
 
 function CustomerForm({
@@ -260,6 +263,7 @@ function CustomerForm({
   sectors: { id: string; name: string; tower_id: string }[];
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     full_name: editing?.full_name ?? "",
     phone: editing?.phone ?? "",
@@ -289,70 +293,70 @@ function CustomerForm({
     }
     setBusy(false);
     if (res.error) return toast.error(res.error.message);
-    toast.success(editing ? "Customer updated" : "Customer created");
+    toast.success(editing ? t("customers.updated") : t("customers.created"));
     onDone();
   };
 
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{editing ? "Edit customer" : "New customer"}</DialogTitle>
+        <DialogTitle>{editing ? t("customers.formEdit") : t("customers.formNew")}</DialogTitle>
       </DialogHeader>
       <form onSubmit={submit} className="grid sm:grid-cols-2 gap-4">
-        <Field label="Full name" required>
+        <Field label={t("customers.f.fullName")} required>
           <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
         </Field>
-        <Field label="Phone">
+        <Field label={t("customers.f.phone")}>
           <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
         </Field>
-        <Field label="Address" className="sm:col-span-2">
+        <Field label={t("customers.f.address")} className="sm:col-span-2">
           <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         </Field>
-        <Field label="Service type">
+        <Field label={t("customers.f.serviceType")}>
           <Select value={form.service_type} onValueChange={(v) => setForm({ ...form, service_type: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="pppoe">PPPoE</SelectItem>
-              <SelectItem value="hotspot">Hotspot</SelectItem>
+              <SelectItem value="pppoe">{t("service.pppoe")}</SelectItem>
+              <SelectItem value="hotspot">{t("service.hotspot")}</SelectItem>
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Status">
+        <Field label={t("customers.f.status")}>
           <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-              <SelectItem value="expired">Expired</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="active">{t("status.active")}</SelectItem>
+              <SelectItem value="suspended">{t("status.suspended")}</SelectItem>
+              <SelectItem value="expired">{t("status.expired")}</SelectItem>
+              <SelectItem value="pending">{t("status.pending")}</SelectItem>
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Username" required>
+        <Field label={t("customers.f.username")} required>
           <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
         </Field>
-        <Field label="Password" required>
+        <Field label={t("customers.f.password")} required>
           <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
         </Field>
-        <Field label="Package">
+        <Field label={t("customers.f.package")}>
           <Select value={form.package_id || undefined} onValueChange={(v) => setForm({ ...form, package_id: v })}>
-            <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("common.none")} /></SelectTrigger>
             <SelectContent>
               {packages.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Tower">
+        <Field label={t("customers.f.tower")}>
           <Select value={form.tower_id || undefined} onValueChange={(v) => setForm({ ...form, tower_id: v, sector_id: "" })}>
-            <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("common.none")} /></SelectTrigger>
             <SelectContent>
-              {towers.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {towers.map((tw) => <SelectItem key={tw.id} value={tw.id}>{tw.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Sector">
+        <Field label={t("customers.f.sector")}>
           <Select value={form.sector_id || undefined} onValueChange={(v) => setForm({ ...form, sector_id: v })} disabled={!form.tower_id}>
-            <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("common.none")} /></SelectTrigger>
             <SelectContent>
               {towerSectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
             </SelectContent>
@@ -361,7 +365,7 @@ function CustomerForm({
 
         <DialogFooter className="sm:col-span-2">
           <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">
-            {busy ? "Saving…" : editing ? "Save changes" : "Create customer"}
+            {busy ? t("common.saving") : editing ? t("common.saveChanges") : t("common.create")}
           </Button>
         </DialogFooter>
       </form>

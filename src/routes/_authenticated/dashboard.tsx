@@ -20,12 +20,14 @@ import {
   YAxis,
 } from "recharts";
 import { format, subDays, startOfMonth, startOfDay } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
 function Dashboard() {
+  const { t } = useI18n();
   const { data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
@@ -74,18 +76,18 @@ function Dashboard() {
   });
 
   const stats = [
-    { label: "Total Customers", value: data?.total ?? 0, icon: Users, accent: "from-blue-500/20" },
-    { label: "Online Now", value: data?.online ?? 0, icon: UserCheck, accent: "from-emerald-500/20" },
-    { label: "Today's Revenue", value: fmtMoney(data?.today ?? 0), icon: DollarSign, accent: "from-violet-500/20" },
-    { label: "Monthly Revenue", value: fmtMoney(data?.month ?? 0), icon: TrendingUp, accent: "from-fuchsia-500/20" },
-    { label: "Expired Customers", value: data?.expired ?? 0, icon: AlertTriangle, accent: "from-orange-500/20" },
+    { label: t("dashboard.totalCustomers"), value: data?.total ?? 0, icon: Users, accent: "from-blue-500/20" },
+    { label: t("dashboard.onlineNow"), value: data?.online ?? 0, icon: UserCheck, accent: "from-emerald-500/20" },
+    { label: t("dashboard.todayRevenue"), value: fmtMoney(data?.today ?? 0), icon: DollarSign, accent: "from-violet-500/20" },
+    { label: t("dashboard.monthlyRevenue"), value: fmtMoney(data?.month ?? 0), icon: TrendingUp, accent: "from-fuchsia-500/20" },
+    { label: t("dashboard.expiredCustomers"), value: data?.expired ?? 0, icon: AlertTriangle, accent: "from-orange-500/20" },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview of your network and revenue.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("dashboard.title")}</h1>
+        <p className="text-muted-foreground text-sm mt-1">{t("dashboard.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -106,7 +108,7 @@ function Dashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 gradient-card border-border/50">
           <CardHeader>
-            <CardTitle className="text-base">Revenue — last 30 days</CardTitle>
+            <CardTitle className="text-base">{t("dashboard.revenueChart")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -139,12 +141,12 @@ function Dashboard() {
         <Card className="gradient-card border-border/50">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Zap className="w-4 h-4 text-accent" /> Recent Recharges
+              <Zap className="w-4 h-4 text-accent" /> {t("dashboard.recentRecharges")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {(data?.recent ?? []).length === 0 && (
-              <div className="text-sm text-muted-foreground">No recharges yet.</div>
+              <div className="text-sm text-muted-foreground">{t("dashboard.noRecharges")}</div>
             )}
             {(data?.recent ?? []).map((r: any) => (
               <div key={r.id} className="flex items-center justify-between gap-3 py-2 border-b border-border/40 last:border-0">

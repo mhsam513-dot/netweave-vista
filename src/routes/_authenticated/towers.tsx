@@ -17,6 +17,7 @@ import {
 import { Radio, Plus, Trash2, Server } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/towers")({
   component: TowersPage,
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/towers")({
 
 function TowersPage() {
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
 
@@ -45,7 +47,7 @@ function TowersPage() {
       const { error } = await supabase.from("towers").insert(payload);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["towers-full"] }); toast.success("Tower added"); setOpen(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["towers-full"] }); toast.success(t("towers.added")); setOpen(false); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -54,7 +56,7 @@ function TowersPage() {
       const { error } = await supabase.from("sectors").insert({ tower_id, name });
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["sectors-full"] }); toast.success("Sector added"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["sectors-full"] }); toast.success(t("towers.sectorAdded")); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -63,7 +65,7 @@ function TowersPage() {
       const { error } = await supabase.from("devices").insert({ tower_id, name, ip_address: ip_address || null });
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["devices-full"] }); toast.success("Device added"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["devices-full"] }); toast.success(t("towers.deviceAdded")); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -74,7 +76,7 @@ function TowersPage() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: [`${vars.table}-full`] });
-      toast.success("Deleted");
+      toast.success(t("common.deleted"));
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -83,18 +85,18 @@ function TowersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Towers & Sectors</h1>
-          <p className="text-muted-foreground text-sm mt-1">Network infrastructure layout.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("towers.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("towers.subtitle")}</p>
         </div>
         {isAdmin && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-brand text-primary-foreground shadow-glow">
-                <Plus className="w-4 h-4 mr-1" /> New tower
+                <Plus className="w-4 h-4 me-1" /> {t("towers.new")}
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>New tower</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("towers.new")}</DialogTitle></DialogHeader>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -103,9 +105,9 @@ function TowersPage() {
                 }}
                 className="space-y-3"
               >
-                <div className="space-y-1.5"><Label className="text-xs">Tower name</Label><Input name="name" required /></div>
-                <div className="space-y-1.5"><Label className="text-xs">Location</Label><Input name="location" /></div>
-                <DialogFooter><Button type="submit" className="gradient-brand text-primary-foreground">Create</Button></DialogFooter>
+                <div className="space-y-1.5"><Label className="text-xs">{t("towers.f.name")}</Label><Input name="name" required /></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t("towers.f.location")}</Label><Input name="location" /></div>
+                <DialogFooter><Button type="submit" className="gradient-brand text-primary-foreground">{t("common.create")}</Button></DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
@@ -114,59 +116,57 @@ function TowersPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {towers.length === 0 && (
-          <Card className="gradient-card border-border/50"><CardContent className="p-8 text-center text-muted-foreground">No towers yet.</CardContent></Card>
+          <Card className="gradient-card border-border/50"><CardContent className="p-8 text-center text-muted-foreground">{t("towers.empty")}</CardContent></Card>
         )}
-        {towers.map((t: any) => {
-          const tSectors = sectors.filter((s: any) => s.tower_id === t.id);
-          const tDevices = devices.filter((d: any) => d.tower_id === t.id);
+        {towers.map((tw: any) => {
+          const tSectors = sectors.filter((s: any) => s.tower_id === tw.id);
+          const tDevices = devices.filter((d: any) => d.tower_id === tw.id);
           return (
-            <Card key={t.id} className="gradient-card border-border/50">
+            <Card key={tw.id} className="gradient-card border-border/50">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Radio className="w-4 h-4 text-accent" /> {t.name}
-                  {t.location && <span className="text-xs font-normal text-muted-foreground">· {t.location}</span>}
+                  <Radio className="w-4 h-4 text-accent" /> {tw.name}
+                  {tw.location && <span className="text-xs font-normal text-muted-foreground">· {tw.location}</span>}
                 </CardTitle>
                 {isAdmin && (
-                  <Button size="sm" variant="ghost" onClick={() => delThing.mutate({ table: "towers", id: t.id })}>
+                  <Button size="sm" variant="ghost" onClick={() => delThing.mutate({ table: "towers", id: tw.id })}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Sectors</div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{t("towers.sectors")}</div>
                   <div className="flex flex-wrap gap-2">
                     {tSectors.map((s: any) => (
                       <span key={s.id} className="px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground text-xs flex items-center gap-1.5">
                         {s.name}
                         {isAdmin && (
-                          <button onClick={() => delThing.mutate({ table: "sectors", id: s.id })} className="opacity-60 hover:opacity-100">
-                            ×
-                          </button>
+                          <button onClick={() => delThing.mutate({ table: "sectors", id: s.id })} className="opacity-60 hover:opacity-100">×</button>
                         )}
                       </span>
                     ))}
-                    {tSectors.length === 0 && <span className="text-xs text-muted-foreground">None</span>}
+                    {tSectors.length === 0 && <span className="text-xs text-muted-foreground">{t("common.none")}</span>}
                   </div>
                   {isAdmin && (
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
                         const fd = new FormData(e.currentTarget);
-                        addSector.mutate({ tower_id: t.id, name: String(fd.get("name")) });
+                        addSector.mutate({ tower_id: tw.id, name: String(fd.get("name")) });
                         (e.currentTarget as HTMLFormElement).reset();
                       }}
                       className="flex gap-2 mt-2"
                     >
-                      <Input name="name" placeholder="Sector name" required className="h-8 text-sm" />
-                      <Button size="sm" type="submit" variant="secondary">Add</Button>
+                      <Input name="name" placeholder={t("towers.sectorName")} required className="h-8 text-sm" />
+                      <Button size="sm" type="submit" variant="secondary">{t("common.add")}</Button>
                     </form>
                   )}
                 </div>
 
                 <div>
                   <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Server className="w-3 h-3" /> Devices
+                    <Server className="w-3 h-3" /> {t("towers.devices")}
                   </div>
                   <ul className="space-y-1.5">
                     {tDevices.map((d: any) => (
@@ -179,7 +179,7 @@ function TowersPage() {
                         )}
                       </li>
                     ))}
-                    {tDevices.length === 0 && <li className="text-xs text-muted-foreground">None</li>}
+                    {tDevices.length === 0 && <li className="text-xs text-muted-foreground">{t("common.none")}</li>}
                   </ul>
                   {isAdmin && (
                     <form
@@ -187,7 +187,7 @@ function TowersPage() {
                         e.preventDefault();
                         const fd = new FormData(e.currentTarget);
                         addDevice.mutate({
-                          tower_id: t.id,
+                          tower_id: tw.id,
                           name: String(fd.get("name")),
                           ip_address: String(fd.get("ip") ?? ""),
                         });
@@ -195,9 +195,9 @@ function TowersPage() {
                       }}
                       className="flex gap-2 mt-2"
                     >
-                      <Input name="name" placeholder="Device name" required className="h-8 text-sm" />
-                      <Input name="ip" placeholder="IP (optional)" className="h-8 text-sm w-40" />
-                      <Button size="sm" type="submit" variant="secondary">Add</Button>
+                      <Input name="name" placeholder={t("towers.deviceName")} required className="h-8 text-sm" />
+                      <Input name="ip" placeholder={t("towers.ipOptional")} className="h-8 text-sm w-40" />
+                      <Button size="sm" type="submit" variant="secondary">{t("common.add")}</Button>
                     </form>
                   )}
                 </div>

@@ -46,6 +46,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: "Cairo", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Royal Blue & Purple — Dark Pro ISP theme */
@@ -141,4 +142,12 @@
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
+}
+
+@utility font-arabic {
+  font-family: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+}
+
+[dir="rtl"] body {
+  font-family: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
 }
