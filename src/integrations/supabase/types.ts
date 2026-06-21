@@ -316,6 +316,222 @@ export type Database = {
         }
         Relationships: []
       }
+      complaints: {
+        Row: {
+          id: string
+          customer_id: string | null
+          subject: string
+          description: string | null
+          priority: "low" | "medium" | "high" | "urgent"
+          status: "open" | "inProgress" | "resolved" | "closed"
+          assigned_to: string | null
+          resolved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id?: string | null
+          subject: string
+          description?: string | null
+          priority?: "low" | "medium" | "high" | "urgent"
+          status?: "open" | "inProgress" | "resolved" | "closed"
+          assigned_to?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string | null
+          subject?: string
+          description?: string | null
+          priority?: "low" | "medium" | "high" | "urgent"
+          status?: "open" | "inProgress" | "resolved" | "closed"
+          assigned_to?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          id: string
+          title: string
+          message: string | null
+          type: "info" | "warning" | "success" | "error"
+          is_read: boolean
+          user_id: string | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          message?: string | null
+          type?: "info" | "warning" | "success" | "error"
+          is_read?: boolean
+          user_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          message?: string | null
+          type?: "info" | "warning" | "success" | "error"
+          is_read?: boolean
+          user_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          id: string
+          customer_id: string | null
+          invoice_number: number | null
+          amount: number
+          status: "unpaid" | "paid" | "overdue"
+          due_date: string | null
+          notes: string | null
+          paid_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id?: string | null
+          invoice_number?: number | null
+          amount?: number
+          status?: "unpaid" | "paid" | "overdue"
+          due_date?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string | null
+          invoice_number?: number | null
+          amount?: number
+          status?: "unpaid" | "paid" | "overdue"
+          due_date?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          id: string
+          customer_id: string | null
+          invoice_id: string | null
+          amount: number
+          method: "cash" | "bank" | "online"
+          reference: string | null
+          notes: string | null
+          received_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id?: string | null
+          invoice_id?: string | null
+          amount?: number
+          method?: "cash" | "bank" | "online"
+          reference?: string | null
+          notes?: string | null
+          received_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string | null
+          invoice_id?: string | null
+          amount?: number
+          method?: "cash" | "bank" | "online"
+          reference?: string | null
+          notes?: string | null
+          received_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routers: {
+        Row: {
+          id: string
+          name: string
+          ip_address: string | null
+          model: string | null
+          api_port: number | null
+          username: string | null
+          password: string | null
+          location: string | null
+          is_online: boolean
+          client_count: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          ip_address?: string | null
+          model?: string | null
+          api_port?: number | null
+          username?: string | null
+          password?: string | null
+          location?: string | null
+          is_online?: boolean
+          client_count?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          ip_address?: string | null
+          model?: string | null
+          api_port?: number | null
+          username?: string | null
+          password?: string | null
+          location?: string | null
+          is_online?: boolean
+          client_count?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

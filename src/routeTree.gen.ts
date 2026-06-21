@@ -14,11 +14,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTowersRouteImport } from './routes/_authenticated/towers'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedRoutersRouteImport } from './routes/_authenticated/routers'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRechargeRouteImport } from './routes/_authenticated/recharge'
+import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticated/packages'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
+import { Route as AuthenticatedHotspotRouteImport } from './routes/_authenticated/hotspot'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -45,6 +52,16 @@ const AuthenticatedTowersRoute = AuthenticatedTowersRouteImport.update({
   path: '/towers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoutersRoute = AuthenticatedRoutersRouteImport.update({
+  id: '/routers',
+  path: '/routers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -55,9 +72,30 @@ const AuthenticatedRechargeRoute = AuthenticatedRechargeRouteImport.update({
   path: '/recharge',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPackagesRoute = AuthenticatedPackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHotspotRoute = AuthenticatedHotspotRouteImport.update({
+  id: '/hotspot',
+  path: '/hotspot',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -70,6 +108,11 @@ const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedComplaintsRoute = AuthenticatedComplaintsRouteImport.update({
+  id: '/complaints',
+  path: '/complaints',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCustomersIdRoute =
   AuthenticatedCustomersIdRouteImport.update({
     id: '/$id',
@@ -80,11 +123,18 @@ const AuthenticatedCustomersIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/complaints': typeof AuthenticatedComplaintsRoute
   '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/hotspot': typeof AuthenticatedHotspotRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/packages': typeof AuthenticatedPackagesRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
   '/recharge': typeof AuthenticatedRechargeRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/routers': typeof AuthenticatedRoutersRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/towers': typeof AuthenticatedTowersRoute
   '/users': typeof AuthenticatedUsersRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -92,11 +142,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/complaints': typeof AuthenticatedComplaintsRoute
   '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/hotspot': typeof AuthenticatedHotspotRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/packages': typeof AuthenticatedPackagesRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
   '/recharge': typeof AuthenticatedRechargeRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/routers': typeof AuthenticatedRoutersRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/towers': typeof AuthenticatedTowersRoute
   '/users': typeof AuthenticatedUsersRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -106,11 +163,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/complaints': typeof AuthenticatedComplaintsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/hotspot': typeof AuthenticatedHotspotRoute
+  '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/packages': typeof AuthenticatedPackagesRoute
+  '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/recharge': typeof AuthenticatedRechargeRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/routers': typeof AuthenticatedRoutersRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/towers': typeof AuthenticatedTowersRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -120,11 +184,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/complaints'
     | '/customers'
     | '/dashboard'
+    | '/hotspot'
+    | '/invoices'
+    | '/notifications'
     | '/packages'
+    | '/payments'
     | '/recharge'
     | '/reports'
+    | '/routers'
+    | '/settings'
     | '/towers'
     | '/users'
     | '/customers/$id'
@@ -132,11 +203,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/complaints'
     | '/customers'
     | '/dashboard'
+    | '/hotspot'
+    | '/invoices'
+    | '/notifications'
     | '/packages'
+    | '/payments'
     | '/recharge'
     | '/reports'
+    | '/routers'
+    | '/settings'
     | '/towers'
     | '/users'
     | '/customers/$id'
@@ -145,11 +223,18 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/complaints'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/hotspot'
+    | '/_authenticated/invoices'
+    | '/_authenticated/notifications'
     | '/_authenticated/packages'
+    | '/_authenticated/payments'
     | '/_authenticated/recharge'
     | '/_authenticated/reports'
+    | '/_authenticated/routers'
+    | '/_authenticated/settings'
     | '/_authenticated/towers'
     | '/_authenticated/users'
     | '/_authenticated/customers/$id'
@@ -198,6 +283,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTowersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/routers': {
+      id: '/_authenticated/routers'
+      path: '/routers'
+      fullPath: '/routers'
+      preLoaderRoute: typeof AuthenticatedRoutersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reports': {
       id: '/_authenticated/reports'
       path: '/reports'
@@ -212,11 +311,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRechargeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payments': {
+      id: '/_authenticated/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/packages': {
       id: '/_authenticated/packages'
       path: '/packages'
       fullPath: '/packages'
       preLoaderRoute: typeof AuthenticatedPackagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/invoices': {
+      id: '/_authenticated/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hotspot': {
+      id: '/_authenticated/hotspot'
+      path: '/hotspot'
+      fullPath: '/hotspot'
+      preLoaderRoute: typeof AuthenticatedHotspotRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -231,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/complaints': {
+      id: '/_authenticated/complaints'
+      path: '/complaints'
+      fullPath: '/complaints'
+      preLoaderRoute: typeof AuthenticatedComplaintsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/customers/$id': {
@@ -258,21 +392,35 @@ const AuthenticatedCustomersRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedHotspotRoute: typeof AuthenticatedHotspotRoute
+  AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPackagesRoute: typeof AuthenticatedPackagesRoute
+  AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedRechargeRoute: typeof AuthenticatedRechargeRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedRoutersRoute: typeof AuthenticatedRoutersRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTowersRoute: typeof AuthenticatedTowersRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedComplaintsRoute: AuthenticatedComplaintsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedHotspotRoute: AuthenticatedHotspotRoute,
+  AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPackagesRoute: AuthenticatedPackagesRoute,
+  AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedRechargeRoute: AuthenticatedRechargeRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedRoutersRoute: AuthenticatedRoutersRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTowersRoute: AuthenticatedTowersRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
