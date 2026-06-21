@@ -17,7 +17,7 @@ import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/hotspot")({
+export const Route = createFileRoute("/_authenticated/hotspot-cards")({
   component: HotspotPage,
 });
 

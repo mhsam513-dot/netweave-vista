@@ -22,7 +22,7 @@ import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticated/packages'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
-import { Route as AuthenticatedHotspotRouteImport } from './routes/_authenticated/hotspot'
+import { Route as AuthenticatedHotspotCardsRouteImport } from './routes/_authenticated/hotspot-cards'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
@@ -94,11 +94,12 @@ const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
   path: '/invoices',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedHotspotRoute = AuthenticatedHotspotRouteImport.update({
-  id: '/hotspot',
-  path: '/hotspot',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedHotspotCardsRoute =
+  AuthenticatedHotspotCardsRouteImport.update({
+    id: '/hotspot-cards',
+    path: '/hotspot-cards',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -132,7 +133,7 @@ export interface FileRoutesByFullPath {
   '/complaints': typeof AuthenticatedComplaintsRoute
   '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/hotspot': typeof AuthenticatedHotspotRoute
+  '/hotspot-cards': typeof AuthenticatedHotspotCardsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/packages': typeof AuthenticatedPackagesRoute
@@ -152,7 +153,7 @@ export interface FileRoutesByTo {
   '/complaints': typeof AuthenticatedComplaintsRoute
   '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/hotspot': typeof AuthenticatedHotspotRoute
+  '/hotspot-cards': typeof AuthenticatedHotspotCardsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/packages': typeof AuthenticatedPackagesRoute
@@ -174,7 +175,7 @@ export interface FileRoutesById {
   '/_authenticated/complaints': typeof AuthenticatedComplaintsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/hotspot': typeof AuthenticatedHotspotRoute
+  '/_authenticated/hotspot-cards': typeof AuthenticatedHotspotCardsRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/packages': typeof AuthenticatedPackagesRoute
@@ -196,7 +197,7 @@ export interface FileRouteTypes {
     | '/complaints'
     | '/customers'
     | '/dashboard'
-    | '/hotspot'
+    | '/hotspot-cards'
     | '/invoices'
     | '/notifications'
     | '/packages'
@@ -216,7 +217,7 @@ export interface FileRouteTypes {
     | '/complaints'
     | '/customers'
     | '/dashboard'
-    | '/hotspot'
+    | '/hotspot-cards'
     | '/invoices'
     | '/notifications'
     | '/packages'
@@ -237,7 +238,7 @@ export interface FileRouteTypes {
     | '/_authenticated/complaints'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
-    | '/_authenticated/hotspot'
+    | '/_authenticated/hotspot-cards'
     | '/_authenticated/invoices'
     | '/_authenticated/notifications'
     | '/_authenticated/packages'
@@ -351,11 +352,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/hotspot': {
-      id: '/_authenticated/hotspot'
-      path: '/hotspot'
-      fullPath: '/hotspot'
-      preLoaderRoute: typeof AuthenticatedHotspotRouteImport
+    '/_authenticated/hotspot-cards': {
+      id: '/_authenticated/hotspot-cards'
+      path: '/hotspot-cards'
+      fullPath: '/hotspot-cards'
+      preLoaderRoute: typeof AuthenticatedHotspotCardsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -425,7 +426,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedHotspotRoute: typeof AuthenticatedHotspotRoute
+  AuthenticatedHotspotCardsRoute: typeof AuthenticatedHotspotCardsRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPackagesRoute: typeof AuthenticatedPackagesRoute
@@ -442,7 +443,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComplaintsRoute: AuthenticatedComplaintsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedHotspotRoute: AuthenticatedHotspotRoute,
+  AuthenticatedHotspotCardsRoute: AuthenticatedHotspotCardsRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPackagesRoute: AuthenticatedPackagesRoute,

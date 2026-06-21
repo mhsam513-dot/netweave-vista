@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       labelKey: "nav.section.mikrotik",
       items: [
         { to: "/routers", label: t("nav.routers"), icon: Router },
-        { to: "/hotspot", label: t("nav.hotspot"), icon: Flame },
+        { to: "/hotspot-cards", label: t("nav.hotspot"), icon: Flame },
       ],
     },
     {

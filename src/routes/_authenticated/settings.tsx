@@ -29,6 +29,9 @@ type SettingsRow = {
   company_name: string;
   company_email: string | null;
   company_phone: string | null;
+  support_phone: string | null;
+  whatsapp_number: string | null;
+  default_language: string;
   currency: string;
   timezone: string;
   invoice_prefix: string;
@@ -41,6 +44,9 @@ const DEFAULTS: SettingsRow = {
   company_name: "ME Internet",
   company_email: "",
   company_phone: "",
+  support_phone: "",
+  whatsapp_number: "",
+  default_language: "en",
   currency: "USD",
   timezone: "Asia/Riyadh",
   invoice_prefix: "INV",
@@ -71,6 +77,9 @@ function SettingsPage() {
         company_name: settingsData.company_name ?? DEFAULTS.company_name,
         company_email: settingsData.company_email ?? "",
         company_phone: settingsData.company_phone ?? "",
+        support_phone: (settingsData as any).support_phone ?? "",
+        whatsapp_number: (settingsData as any).whatsapp_number ?? "",
+        default_language: (settingsData as any).default_language ?? "en",
         currency: settingsData.currency ?? DEFAULTS.currency,
         timezone: settingsData.timezone ?? DEFAULTS.timezone,
         invoice_prefix: settingsData.invoice_prefix ?? DEFAULTS.invoice_prefix,
@@ -102,10 +111,11 @@ function SettingsPage() {
       [t("settings.f.companyName"), settingsData.company_name ?? "—"],
       [t("settings.f.companyEmail"), settingsData.company_email ?? "—"],
       [t("settings.f.companyPhone"), settingsData.company_phone ?? "—"],
+      [t("settings.f.supportPhone"), (settingsData as any).support_phone ?? "—"],
+      [t("settings.f.whatsapp"), (settingsData as any).whatsapp_number ?? "—"],
+      [t("settings.f.defaultLanguage"), (settingsData as any).default_language ?? "en"],
       [t("settings.f.currency"), settingsData.currency ?? "—"],
       [t("settings.f.timezone"), settingsData.timezone ?? "—"],
-      [t("settings.f.invoicePrefix"), settingsData.invoice_prefix ?? "—"],
-      [t("settings.f.dueDays"), String(settingsData.invoice_due_days ?? 30)],
     ];
     return (
       <div className="space-y-6">
@@ -185,6 +195,24 @@ function SettingsPage() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">{t("settings.f.companyPhone")}</Label>
                   <Input value={form.company_phone ?? ""} onChange={(e) => setForm({ ...form, company_phone: e.target.value })} disabled={isLoading} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t("settings.f.supportPhone")}</Label>
+                  <Input value={form.support_phone ?? ""} onChange={(e) => setForm({ ...form, support_phone: e.target.value })} placeholder="+1 800 000 0000" disabled={isLoading} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t("settings.f.whatsapp")}</Label>
+                  <Input value={form.whatsapp_number ?? ""} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} placeholder="+1 555 000 0000" disabled={isLoading} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t("settings.f.defaultLanguage")}</Label>
+                  <Select value={form.default_language} onValueChange={(v) => setForm({ ...form, default_language: v })} disabled={isLoading}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="ar">Arabic — عربي</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">{t("settings.f.currency")}</Label>

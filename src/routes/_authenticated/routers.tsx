@@ -162,7 +162,7 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
     model: editing?.model ?? "",
     api_port: editing?.api_port ?? "8728",
     username: editing?.username ?? "admin",
-    password: editing?.password ?? "",
+    password: "", // write-only — never prefill from DB; leave blank to keep existing value
     location: editing?.location ?? "",
   });
   const [busy, setBusy] = useState(false);
@@ -170,10 +170,13 @@ function RouterForm({ editing, onDone }: { editing: any; onDone: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const payload = { ...form, api_port: Number(form.api_port) || 8728 };
+    const { password, ...rest } = form;
+    const base = { ...rest, api_port: Number(form.api_port) || 8728 };
+    // Only include password in payload if user entered a new value
+    const payload = password ? { ...base, password } : base;
     const res = editing
       ? await supabase.from("routers").update(payload).eq("id", editing.id)
-      : await supabase.from("routers").insert(payload);
+      : await supabase.from("routers").insert({ ...base, password: password || null });
     setBusy(false);
     if (res.error) return toast.error(res.error.message);
     toast.success(editing ? t("routers.updated") : t("routers.created"));
