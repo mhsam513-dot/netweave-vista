@@ -494,8 +494,8 @@ export type Database = {
           ip_address: string | null
           model: string | null
           api_port: number | null
+          type: "mikrotik" | "ubiquiti" | "cisco" | "other"
           username: string | null
-          password: string | null
           location: string | null
           is_online: boolean
           client_count: number | null
@@ -508,8 +508,8 @@ export type Database = {
           ip_address?: string | null
           model?: string | null
           api_port?: number | null
+          type?: "mikrotik" | "ubiquiti" | "cisco" | "other"
           username?: string | null
-          password?: string | null
           location?: string | null
           is_online?: boolean
           client_count?: number | null
@@ -522,8 +522,8 @@ export type Database = {
           ip_address?: string | null
           model?: string | null
           api_port?: number | null
+          type?: "mikrotik" | "ubiquiti" | "cisco" | "other"
           username?: string | null
-          password?: string | null
           location?: string | null
           is_online?: boolean
           client_count?: number | null
@@ -532,10 +532,67 @@ export type Database = {
         }
         Relationships: []
       }
+      router_secrets: {
+        Row: {
+          router_id: string
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          router_id: string
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          router_id?: string
+          password?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "router_secrets_router_id_fkey"
+            columns: ["router_id"]
+            isOneToOne: true
+            referencedRelation: "routers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_reads: {
+        Row: {
+          id: string
+          notification_id: string
+          user_id: string
+          read_at: string
+        }
+        Insert: {
+          id?: string
+          notification_id: string
+          user_id: string
+          read_at?: string
+        }
+        Update: {
+          id?: string
+          notification_id?: string
+          user_id?: string
+          read_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotspot_cards: {
         Row: {
           id: string
           code: string
+          username: string | null
+          password: string | null
           profile: string | null
           validity_days: number
           bandwidth_limit: string | null
@@ -550,6 +607,8 @@ export type Database = {
         Insert: {
           id?: string
           code: string
+          username?: string | null
+          password?: string | null
           profile?: string | null
           validity_days?: number
           bandwidth_limit?: string | null
@@ -564,6 +623,8 @@ export type Database = {
         Update: {
           id?: string
           code?: string
+          username?: string | null
+          password?: string | null
           profile?: string | null
           validity_days?: number
           bandwidth_limit?: string | null
@@ -591,8 +652,11 @@ export type Database = {
           company_name: string
           company_email: string | null
           company_phone: string | null
+          support_phone: string | null
+          whatsapp_number: string | null
           currency: string
           timezone: string
+          default_language: string
           invoice_prefix: string
           invoice_due_days: number
           tax_rate: number
@@ -608,8 +672,11 @@ export type Database = {
           company_name?: string
           company_email?: string | null
           company_phone?: string | null
+          support_phone?: string | null
+          whatsapp_number?: string | null
           currency?: string
           timezone?: string
+          default_language?: string
           invoice_prefix?: string
           invoice_due_days?: number
           tax_rate?: number
@@ -625,8 +692,11 @@ export type Database = {
           company_name?: string
           company_email?: string | null
           company_phone?: string | null
+          support_phone?: string | null
+          whatsapp_number?: string | null
           currency?: string
           timezone?: string
+          default_language?: string
           invoice_prefix?: string
           invoice_due_days?: number
           tax_rate?: number

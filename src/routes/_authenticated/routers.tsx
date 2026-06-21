@@ -32,7 +32,7 @@ function RoutersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routers")
-        .select("id, name, ip_address, api_port, model, username, location, is_online, client_count, created_at, updated_at")
+        .select("id, name, ip_address, api_port, type, model, username, location, is_online, client_count, created_at, updated_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];

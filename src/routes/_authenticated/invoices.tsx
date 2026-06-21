@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/invoices")({
 });
 
 function InvoicesPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, canRecharge } = useAuth();
   const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -80,7 +80,7 @@ function InvoicesPage() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("invoices.title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">{t("invoices.subtitle")}</p>
         </div>
-        {isAdmin && (
+        {(isAdmin || canRecharge) && (
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
             <DialogTrigger asChild>
               <Button className="gradient-brand text-primary-foreground shadow-glow">
@@ -127,7 +127,7 @@ function InvoicesPage() {
                 <TableHead>{t("invoices.col.status")}</TableHead>
                 <TableHead>{t("invoices.col.dueDate")}</TableHead>
                 <TableHead>{t("invoices.col.issuedAt")}</TableHead>
-                {isAdmin && <TableHead className="text-end">{t("common.actions")}</TableHead>}
+                {(isAdmin || canRecharge) && <TableHead className="text-end">{t("common.actions")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -148,7 +148,7 @@ function InvoicesPage() {
                   <TableCell><InvoiceStatusBadge status={inv.status} /></TableCell>
                   <TableCell className="text-xs text-muted-foreground">{inv.due_date ? format(new Date(inv.due_date), "MMM d, yyyy") : "—"}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{format(new Date(inv.created_at), "MMM d, yyyy")}</TableCell>
-                  {isAdmin && (
+                  {(isAdmin || canRecharge) && (
                     <TableCell className="text-end space-x-1">
                       {inv.status !== "paid" && (
                         <Button size="sm" variant="ghost" onClick={() => markPaid.mutate(inv.id)} title={t("invoices.markPaid")}>
@@ -158,9 +158,11 @@ function InvoicesPage() {
                       <Button size="sm" variant="ghost" onClick={() => { setEditing(inv); setOpen(true); }} title={t("common.edit")}>
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => del.mutate(inv.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      {isAdmin && (
+                        <Button size="sm" variant="ghost" onClick={() => del.mutate(inv.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>
