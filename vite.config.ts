@@ -1,23 +1,40 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro (build-only using cloudflare as a default target),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import type { Plugin } from "vite";
+
+function replitEnvPlugin(): Plugin {
+  return {
+    name: "replit-env-inject",
+    enforce: "post",
+    config() {
+      const define: Record<string, string> = {};
+      for (const [key, value] of Object.entries(process.env)) {
+        if (key.startsWith("VITE_") && value !== undefined) {
+          // Strip surrounding quotes that may have been preserved from .env or secrets
+          const trimmed = value.trim();
+          const clean = trimmed.replace(/^["'](.*)["']$/, "$1").trim();
+          define[`import.meta.env.${key}`] = JSON.stringify(clean);
+        }
+      }
+      return { define };
+    },
+  };
+}
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
   },
+  envDefine: false,
   vite: {
+    plugins: [replitEnvPlugin()],
     server: {
       host: "0.0.0.0",
       port: 5000,
       strictPort: true,
       allowedHosts: true,
+      hmr: {
+        clientPort: 443,
+      },
     },
   },
 });
