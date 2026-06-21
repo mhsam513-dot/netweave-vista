@@ -32,6 +32,7 @@ import {
 import { Plus, Trash2, Pencil, Infinity as Inf } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/packages")({
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/packages")({
 
 function PackagesPage() {
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -57,7 +59,7 @@ function PackagesPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["packages-full"] });
-      toast.success("Package deleted");
+      toast.success(t("packages.deleted"));
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -66,14 +68,14 @@ function PackagesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Packages</h1>
-          <p className="text-muted-foreground text-sm mt-1">Define service plans your customers subscribe to.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("packages.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("packages.subtitle")}</p>
         </div>
         {isAdmin && (
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
             <DialogTrigger asChild>
               <Button className="gradient-brand text-primary-foreground shadow-glow">
-                <Plus className="w-4 h-4 mr-1" /> New package
+                <Plus className="w-4 h-4 mr-1" /> {t("packages.new")}
               </Button>
             </DialogTrigger>
             <PackageForm
@@ -94,23 +96,23 @@ function PackagesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Speed</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Validity</TableHead>
-                <TableHead>Price</TableHead>
-                {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                <TableHead>{t("common.name")}</TableHead>
+                <TableHead>{t("packages.col.type")}</TableHead>
+                <TableHead>{t("packages.col.speed")}</TableHead>
+                <TableHead>{t("packages.col.data")}</TableHead>
+                <TableHead>{t("packages.col.validity")}</TableHead>
+                <TableHead>{t("packages.col.price")}</TableHead>
+                {isAdmin && <TableHead className="text-right">{t("common.actions")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {pkgs.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">No packages yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">{t("packages.empty")}</TableCell></TableRow>
               )}
               {pkgs.map((p: any) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell><Badge variant="outline" className="capitalize">{p.package_type}</Badge></TableCell>
+                  <TableCell><Badge variant="outline">{t(`packages.type.${p.package_type}`)}</Badge></TableCell>
                   <TableCell>{p.speed ?? "—"}</TableCell>
                   <TableCell>{p.data_limit_gb ? `${p.data_limit_gb} GB` : <Inf className="w-4 h-4 inline opacity-60" />}</TableCell>
                   <TableCell>{p.validity_days}d</TableCell>
@@ -136,6 +138,7 @@ function PackagesPage() {
 }
 
 function PackageForm({ editing, onDone }: { editing: any; onDone: () => void }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     name: editing?.name ?? "",
     price: editing?.price ?? 0,
@@ -161,46 +164,46 @@ function PackageForm({ editing, onDone }: { editing: any; onDone: () => void }) 
       : await supabase.from("packages").insert(payload);
     setBusy(false);
     if (res.error) return toast.error(res.error.message);
-    toast.success(editing ? "Package updated" : "Package created");
+    toast.success(editing ? t("packages.updated") : t("packages.created"));
     onDone();
   };
 
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>{editing ? "Edit package" : "New package"}</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{editing ? t("packages.formEdit") : t("packages.formNew")}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5 col-span-2">
-          <Label className="text-xs">Name</Label>
+          <Label className="text-xs">{t("common.name")}</Label>
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Type</Label>
+          <Label className="text-xs">{t("packages.col.type")}</Label>
           <Select value={form.package_type} onValueChange={(v) => setForm({ ...form, package_type: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="unlimited">Unlimited</SelectItem>
-              <SelectItem value="quota">Quota</SelectItem>
+              <SelectItem value="unlimited">{t("packages.type.unlimited")}</SelectItem>
+              <SelectItem value="quota">{t("packages.type.quota")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Price</Label>
+          <Label className="text-xs">{t("packages.col.price")}</Label>
           <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Speed (e.g. 10/5 Mbps)</Label>
+          <Label className="text-xs">{t("packages.f.speed")}</Label>
           <Input value={form.speed} onChange={(e) => setForm({ ...form, speed: e.target.value })} />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Data limit (GB)</Label>
-          <Input type="number" step="0.01" value={form.data_limit_gb} onChange={(e) => setForm({ ...form, data_limit_gb: e.target.value })} placeholder="Leave empty for unlimited" />
+          <Label className="text-xs">{t("packages.f.dataLimit")}</Label>
+          <Input type="number" step="0.01" value={form.data_limit_gb} onChange={(e) => setForm({ ...form, data_limit_gb: e.target.value })} placeholder={t("packages.f.dataPlaceholder")} />
         </div>
         <div className="space-y-1.5 col-span-2">
-          <Label className="text-xs">Validity (days)</Label>
+          <Label className="text-xs">{t("packages.f.validity")}</Label>
           <Input type="number" value={form.validity_days} onChange={(e) => setForm({ ...form, validity_days: e.target.value })} required />
         </div>
         <DialogFooter className="col-span-2">
-          <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">{busy ? "Saving…" : "Save"}</Button>
+          <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">{busy ? t("common.saving") : t("common.save")}</Button>
         </DialogFooter>
       </form>
     </DialogContent>

@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   component: ReportsPage,
 });
 
 function ReportsPage() {
+  const { t } = useI18n();
   const { data } = useQuery({
     queryKey: ["reports"],
     queryFn: async () => {
@@ -53,19 +55,19 @@ function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground text-sm mt-1">Revenue, recharge activity and customer status.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("reports.title")}</h1>
+        <p className="text-muted-foreground text-sm mt-1">{t("reports.subtitle")}</p>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI label="Today's Revenue" value={fmt(data?.today ?? 0)} />
-        <KPI label="Monthly Revenue" value={fmt(data?.month ?? 0)} />
-        <KPI label="Active Customers" value={data?.statusCount.active ?? 0} />
-        <KPI label="Expired Customers" value={data?.statusCount.expired ?? 0} />
+        <KPI label={t("dashboard.todayRevenue")} value={fmt(data?.today ?? 0)} />
+        <KPI label={t("dashboard.monthlyRevenue")} value={fmt(data?.month ?? 0)} />
+        <KPI label={t("reports.activeCustomers")} value={data?.statusCount.active ?? 0} />
+        <KPI label={t("dashboard.expiredCustomers")} value={data?.statusCount.expired ?? 0} />
       </div>
 
       <Card className="gradient-card border-border/50">
-        <CardHeader><CardTitle className="text-base">Daily revenue (30 days)</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("reports.dailyRevenue")}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -82,16 +84,16 @@ function ReportsPage() {
       </Card>
 
       <Card className="gradient-card border-border/50">
-        <CardHeader><CardTitle className="text-base">Recent recharge history</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("reports.recentHistory")}</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Validity</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t("reports.col.date")}</TableHead>
+                <TableHead>{t("reports.col.customer")}</TableHead>
+                <TableHead>{t("reports.col.package")}</TableHead>
+                <TableHead>{t("reports.col.validity")}</TableHead>
+                <TableHead className="text-end">{t("reports.col.amount")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,11 +106,11 @@ function ReportsPage() {
                   </TableCell>
                   <TableCell>{r.package?.name ?? "—"}</TableCell>
                   <TableCell>{r.validity_days}d</TableCell>
-                  <TableCell className="text-right font-semibold">{fmt(r.amount)}</TableCell>
+                  <TableCell className="text-end font-semibold">{fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
               {(data?.history ?? []).length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No recharges yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t("reports.empty")}</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { Search, Zap, ShieldAlert } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/recharge")({
 
 function RechargePage() {
   const { canRecharge, user } = useAuth();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<any>(null);
@@ -74,7 +76,7 @@ function RechargePage() {
     setBusy(false);
     if (upd.error) return toast.error(upd.error.message);
 
-    toast.success(`${selected.full_name} recharged with ${pkg.name}`);
+    toast.success(t("recharge.success", { name: selected.full_name, pkg: pkg.name }));
     setSelected(null);
     setPackageId("");
     setQ("");
@@ -87,8 +89,8 @@ function RechargePage() {
       <Card className="gradient-card border-border/50 max-w-lg">
         <CardContent className="p-8 text-center space-y-3">
           <ShieldAlert className="w-10 h-10 mx-auto text-warning" />
-          <h2 className="text-lg font-semibold">No permission</h2>
-          <p className="text-sm text-muted-foreground">You need the Recharge or Admin role to recharge customers.</p>
+          <h2 className="text-lg font-semibold">{t("recharge.noPerm")}</h2>
+          <p className="text-sm text-muted-foreground">{t("recharge.noPermDesc")}</p>
         </CardContent>
       </Card>
     );
@@ -97,16 +99,16 @@ function RechargePage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Recharge</h1>
-        <p className="text-muted-foreground text-sm mt-1">Find a customer and apply a package recharge.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("recharge.title")}</h1>
+        <p className="text-muted-foreground text-sm mt-1">{t("recharge.subtitle")}</p>
       </div>
 
       <Card className="gradient-card border-border/50">
-        <CardHeader><CardTitle className="text-base">1. Find customer</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("recharge.step1")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => { setQ(e.target.value); setSelected(null); }} placeholder="Search by name, code, username, phone…" className="pl-9" />
+            <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input value={q} onChange={(e) => { setQ(e.target.value); setSelected(null); }} placeholder={t("recharge.searchPlaceholder")} className="ps-9" />
           </div>
           {!selected && customers.length > 0 && (
             <div className="border border-border/50 rounded-lg divide-y divide-border/40 max-h-72 overflow-y-auto">
@@ -114,13 +116,13 @@ function RechargePage() {
                 <button
                   key={c.id}
                   onClick={() => setSelected(c)}
-                  className="w-full text-left p-3 hover:bg-accent/10 flex items-center justify-between"
+                  className="w-full text-start p-3 hover:bg-accent/10 flex items-center justify-between"
                 >
                   <div>
                     <div className="font-medium text-sm">{c.full_name}</div>
                     <div className="text-xs text-muted-foreground">{c.code} · {c.username}</div>
                   </div>
-                  <span className="text-xs text-muted-foreground capitalize">{c.status}</span>
+                  <span className="text-xs text-muted-foreground">{t(`status.${c.status}`)}</span>
                 </button>
               ))}
             </div>
@@ -131,23 +133,23 @@ function RechargePage() {
                 <div className="font-semibold">{selected.full_name}</div>
                 <div className="text-xs opacity-80">{selected.code} · {selected.username}</div>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setSelected(null)} className="text-primary-foreground hover:text-primary-foreground hover:bg-white/10">Change</Button>
+              <Button variant="ghost" size="sm" onClick={() => setSelected(null)} className="text-primary-foreground hover:text-primary-foreground hover:bg-white/10">{t("common.change")}</Button>
             </div>
           )}
         </CardContent>
       </Card>
 
       <Card className="gradient-card border-border/50">
-        <CardHeader><CardTitle className="text-base">2. Choose package</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("recharge.step2")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-xs">Package</Label>
+            <Label className="text-xs">{t("customers.f.package")}</Label>
             <Select value={packageId || undefined} onValueChange={setPackageId} disabled={!selected}>
-              <SelectTrigger><SelectValue placeholder="Select a package" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("recharge.selectPackage")} /></SelectTrigger>
               <SelectContent>
                 {pkgs.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.name} — {fmt(p.price)} / {p.validity_days}d
+                    {p.name} — {fmt(p.price)} / {p.validity_days}{t("recharge.days") === "days" ? "d" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -155,13 +157,13 @@ function RechargePage() {
           </div>
           {pkg && (
             <div className="grid grid-cols-3 gap-3 text-center">
-              <Stat label="Amount" value={fmt(pkg.price)} />
-              <Stat label="Validity" value={`${pkg.validity_days} days`} />
-              <Stat label="Speed" value={pkg.speed ?? "—"} />
+              <Stat label={t("recharge.amount")} value={fmt(pkg.price)} />
+              <Stat label={t("recharge.validity")} value={`${pkg.validity_days} ${t("recharge.days")}`} />
+              <Stat label={t("recharge.speed")} value={pkg.speed ?? "—"} />
             </div>
           )}
           <Button disabled={!selected || !pkg || busy} onClick={submit} className="w-full gradient-brand text-primary-foreground shadow-glow">
-            <Zap className="w-4 h-4 mr-2" /> {busy ? "Processing…" : "Confirm recharge"}
+            <Zap className="w-4 h-4 me-2" /> {busy ? t("common.processing") : t("recharge.confirm")}
           </Button>
         </CardContent>
       </Card>
